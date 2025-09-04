@@ -1,7 +1,7 @@
 ---
 title: "Embeddable signing"
 description: "Embed the signing experience into your product so users can sign documents without leaving your app."
-icon: 'cursor-click'
+icon: "cursor-click"
 ---
 
 # Embeddable signing
@@ -15,10 +15,3 @@ Embed the signing flow using the signing URL pattern:
 ```html
 <iframe src="https://app.firma.dev/signing/{signing_request_user_id}" style="width:100%;height:900px;border:0;" allow="camera;microphone;clipboard-write"></iframe>
 ```
-
-## Security considerations
-
-- Ensure the signing_request_user_id is short-lived or validated server-side.
-- Use your backend to generate ephemeral links when appropriate.
-
-> TODO: Add postMessage events and recommended session flows.

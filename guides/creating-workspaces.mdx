@@ -1,26 +1,26 @@
 ---
 title: "Creating workspaces"
 description: "API-first guide for creating and managing workspaces (siloed environments) for your customers."
-icon: 'users'
+icon: "users"
 ---
 
 # Creating workspaces
 
-This guide focuses on the API operations for creating and managing workspaces (previously called "teams") — the isolated tenant units used to separate customers' templates, documents, and signing requests.
+This guide focuses on the API operations for creating and managing workspaces — the isolated tenant units used to separate customers' templates, documents, and signing requests.
 
 Core endpoints (see the API reference for full details):
 
-- POST `/teams` — create a workspace
-- GET `/teams/{team_id}` — retrieve workspace details
-- PUT `/teams/{team_id}` — update workspace
-- GET `/teams` — list workspaces (pagination)
+- POST `/workspaces` — create a workspace
+- GET `/workspaces/{workspace_id}` — retrieve workspace details
+- PUT `/workspaces/{workspace_id}` — update workspace
+- GET `/workspaces` — list workspaces (pagination)
 
-You can also find dedicated reference pages under `api-reference/teams`:
+You can also find dedicated reference pages under `api-reference/workspaces`:
 
-- `api-reference/teams/create-team`
-- `api-reference/teams/get-team`
-- `api-reference/teams/list-teams`
-- `api-reference/teams/update-team`
+- `api-reference/workspaces/create-workspace`
+- `api-reference/workspaces/get-workspace`
+- `api-reference/workspaces/list-workspaces`
+- `api-reference/workspaces/update-workspace`
 
 Authentication
 
@@ -34,14 +34,14 @@ Note: never expose your primary API key to end-user browsers. For per-workspace 
 
 ## Create a workspace
 
-Endpoint: POST `/teams`
+Endpoint: POST `/workspaces`
 
 Required body: `{ "name": "string" }`
 
 Example (curl):
 
 ```bash
-curl -X POST "https://api.partner.com/v1/teams" \
+curl -X POST "https://api.partner.com/v1/workspaces" \
   -H "Authorization: Bearer $FIRMA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "Acme Corp Workspace" }'
@@ -65,7 +65,7 @@ Server example — Node (fetch):
 import fetch from 'node-fetch'
 
 export async function createWorkspace(name) {
-  const resp = await fetch('https://api.partner.com/v1/teams', {
+  const resp = await fetch('https://api.partner.com/v1/workspaces', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
@@ -85,7 +85,7 @@ import os
 import requests
 
 def create_workspace(name):
-    url = 'https://api.partner.com/v1/teams'
+    url = 'https://api.partner.com/v1/workspaces'
     resp = requests.post(url, headers={
         'Authorization': f"Bearer {os.environ['FIRMA_API_KEY']}",
         'Content-Type': 'application/json'
@@ -96,12 +96,12 @@ def create_workspace(name):
 
 ## Retrieve a workspace
 
-Endpoint: GET `/teams/{team_id}`
+Endpoint: GET `/workspaces/{workspace_id}`
 
 Example (curl):
 
 ```bash
-curl "https://api.partner.com/v1/teams/team_123" \
+curl "https://api.partner.com/v1/workspaces/team_123" \
   -H "Authorization: Bearer $FIRMA_API_KEY"
 ```
 
@@ -109,12 +109,12 @@ Response: the `Workspace` resource (see example above).
 
 ## Update a workspace
 
-Endpoint: PUT `/teams/{team_id}` — full resource replacement. Required body same as `CreateTeam` (e.g., `{ "name": "New name" }`).
+Endpoint: PUT `/workspaces/{workspace_id}` — full resource replacement. Required body same as `CreateWorkspaces` (e.g., `{ "name": "New name" }`).
 
 Example (curl):
 
 ```bash
-curl -X PUT "https://api.partner.com/v1/teams/team_123" \
+curl -X PUT "https://api.partner.com/v1/workspaces/team_123" \
   -H "Authorization: Bearer $FIRMA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "Acme Corp - East Coast" }'
@@ -123,8 +123,8 @@ curl -X PUT "https://api.partner.com/v1/teams/team_123" \
 Server example — Node (fetch):
 
 ```js
-export async function updateWorkspace(teamId, name) {
-  const resp = await fetch(`https://api.partner.com/v1/teams/${teamId}`, {
+export async function updateWorkspace(workspaceId, name) {
+  const resp = await fetch(`https://api.partner.com/v1/workspaces/${workspaceId}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
@@ -139,12 +139,12 @@ export async function updateWorkspace(teamId, name) {
 
 ## List workspaces
 
-Endpoint: GET `/teams`
+Endpoint: GET `/workspaces`
 
 Supports `page` and `page_size` query parameters. Example:
 
 ```bash
-curl "https://api.partner.com/v1/teams?page=1&page_size=20" \
+curl "https://api.partner.com/v1/workspaces?page=1&page_size=20" \
   -H "Authorization: Bearer $FIRMA_API_KEY"
 ```
 
@@ -161,7 +161,3 @@ Response shape contains `results` (array of `Workspace`) and `pagination` metada
 - Duplicate names: workspace names are display-friendly and may not be unique; use the `id` for programmatic references.
 - Protected workspaces: the `protected` flag indicates system-owned workspaces that cannot be deleted or modified by normal flows.
 - Rate limits & errors: inspect non-2xx responses for `{ error, code }` and surface meaningful messages to operators.
-
-## Next steps
-
-- If you'd like, I can add example tests (unit/integration) for these server functions and a small CLI to create/list workspaces locally.

@@ -1,7 +1,7 @@
 ---
 title: "Embeddable template editor"
 description: "How to embed and configure the template editor in your product."
-icon: 'pencil-square'
+icon: "pencil-square"
 ---
 
 # Embeddable template editor
@@ -23,13 +23,11 @@ A minimal iframe embed looks like this:
 - Pass the current user's workspace or auth token so the editor loads the correct templates.
 - Listen for postMessage events from the editor to react to saves, publish, or close events.
 
-> TODO: Add postMessage event schema and example code snippets.
-
 ## Recommended integration (secure, production-ready)
 
 Use a small server-side endpoint to request an embedded JWT token from the Firma API and return a short-lived embed URL to your frontend. The OpenAPI for this repo exposes:
 
-- POST /templates/{template_id}/embed-token — returns { token, expires_at, embed_url }
+- POST /templates/template_id/embed-token — returns  token, expires_at, embed_url 
 
 Server responsibilities:
 
@@ -168,12 +166,4 @@ iframe.addEventListener('load', () => {
 
 ## Security considerations
 
-- Never expose your main API key in the browser. Use a server endpoint to mint embed tokens (see server examples).
-- Keep embed tokens short-lived (1–2 hours recommended).
-- Validate message origins in your postMessage listeners.
-- Scope the JWT token to the specific template and operations needed (read/write as required).
-
-## Next steps
-
-- Add example SDK wrappers for common stacks (React/Vue) if you want a reusable integration component.
-- If you want, I can add a concrete postMessage event catalogue matching the editor's real payloads — provide the editor's event names or I can propose a full spec.
+- Never expose your main API key in the browser. Use a server endpoint to mint embed tokens (see server examples)
