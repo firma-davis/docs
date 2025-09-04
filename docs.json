@@ -63,18 +63,56 @@
         "tab": "API reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Endpoints",
             "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              {
+                "group": "Templates",
+                "pages": [
+                  "api-reference/templates/list-templates",
+                  "api-reference/templates/create-template",
+                  "api-reference/templates/get-template",
+                  "api-reference/templates/update-template-save-all",
+                  "api-reference/templates/delete-template",
+                  "api-reference/templates/create-signing-request-from-template",
+                  "api-reference/templates/generate-embedded-template-token"
+                ]
+              },
+              {
+                "group": "Embedded Templates",
+                "pages": [
+                  "api-reference/embedded-templates/get-embedded-template",
+                  "api-reference/embedded-templates/update-embedded-template"
+                ]
+              },
+              {
+                "group": "Signing Requests",
+                "pages": [
+                  "api-reference/signing-requests/list-signing-requests",
+                  "api-reference/signing-requests/create-signing-request",
+                  "api-reference/signing-requests/get-signing-request",
+                  "api-reference/signing-requests/update-signing-request",
+                  "api-reference/signing-requests/send-signing-request",
+                  "api-reference/signing-requests/cancel-signing-request",
+                  "api-reference/signing-requests/send-reminder",
+                  "api-reference/signing-requests/download-completed-document"
+                ]
+              },
+              {
+                "group": "Teams",
+                "pages": [
+                  "api-reference/teams/list-teams",
+                  "api-reference/teams/create-team",
+                  "api-reference/teams/get-team",
+                  "api-reference/teams/update-team"
+                ]
+              },
+              {
+                "group": "Company",
+                "pages": [
+                  "api-reference/company/get-company-details",
+                  "api-reference/company/update-company-details"
+                ]
+              }
             ]
           }
         ]
