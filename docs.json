@@ -45,6 +45,18 @@
               "ai-tools/windsurf"
             ]
           }
+          ,
+          {
+            "group": "Product guides",
+            "pages": [
+              "guides/introduction",
+              "guides/creating-workspaces",
+              "guides/embeddable-template-editor",
+              "guides/sending-signing-request",
+              "guides/embeddable-signing",
+              "guides/webhooks"
+            ]
+          }
         ]
       },
       {

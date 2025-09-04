@@ -1,0 +1,167 @@
+---
+title: "Creating workspaces"
+description: "API-first guide for creating and managing workspaces (siloed environments) for your customers."
+icon: 'users'
+---
+
+# Creating workspaces
+
+This guide focuses on the API operations for creating and managing workspaces (previously called "teams") — the isolated tenant units used to separate customers' templates, documents, and signing requests.
+
+Core endpoints (see the API reference for full details):
+
+- POST `/teams` — create a workspace
+- GET `/teams/{team_id}` — retrieve workspace details
+- PUT `/teams/{team_id}` — update workspace
+- GET `/teams` — list workspaces (pagination)
+
+You can also find dedicated reference pages under `api-reference/teams`:
+
+- `api-reference/teams/create-team`
+- `api-reference/teams/get-team`
+- `api-reference/teams/list-teams`
+- `api-reference/teams/update-team`
+
+Authentication
+
+All requests must include an Authorization header using your API key:
+
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+Note: never expose your primary API key to end-user browsers. For per-workspace operations that need to be initiated from the frontend, call your backend which holds the key.
+
+## Create a workspace
+
+Endpoint: POST `/teams`
+
+Required body: `{ "name": "string" }`
+
+Example (curl):
+
+```bash
+curl -X POST "https://api.partner.com/v1/teams" \
+  -H "Authorization: Bearer $FIRMA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Acme Corp Workspace" }'
+```
+
+Successful response (201) returns the `Team` resource with `id`, `name`, and timestamps. Example shape:
+
+```json
+{
+  "id": "team_123",
+  "name": "Acme Corp Workspace",
+  "protected": false,
+  "created_date": "2025-09-04T12:00:00Z",
+  "updated_date": "2025-09-04T12:00:00Z"
+}
+```
+
+Server example — Node (fetch):
+
+```js
+import fetch from 'node-fetch'
+
+export async function createWorkspace(name) {
+  const resp = await fetch('https://api.partner.com/v1/teams', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name })
+  })
+  if (!resp.ok) throw new Error(`create workspace failed: ${resp.status}`)
+  return resp.json()
+}
+```
+
+Server example — Python (requests):
+
+```py
+import os
+import requests
+
+def create_workspace(name):
+    url = 'https://api.partner.com/v1/teams'
+    resp = requests.post(url, headers={
+        'Authorization': f"Bearer {os.environ['FIRMA_API_KEY']}",
+        'Content-Type': 'application/json'
+    }, json={ 'name': name })
+    resp.raise_for_status()
+    return resp.json()
+```
+
+## Retrieve a workspace
+
+Endpoint: GET `/teams/{team_id}`
+
+Example (curl):
+
+```bash
+curl "https://api.partner.com/v1/teams/team_123" \
+  -H "Authorization: Bearer $FIRMA_API_KEY"
+```
+
+Response: the `Team` resource (see example above).
+
+## Update a workspace
+
+Endpoint: PUT `/teams/{team_id}` — full resource replacement. Required body same as `CreateTeam` (e.g., `{ "name": "New name" }`).
+
+Example (curl):
+
+```bash
+curl -X PUT "https://api.partner.com/v1/teams/team_123" \
+  -H "Authorization: Bearer $FIRMA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "Acme Corp - East Coast" }'
+```
+
+Server example — Node (fetch):
+
+```js
+export async function updateWorkspace(teamId, name) {
+  const resp = await fetch(`https://api.partner.com/v1/teams/${teamId}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ name })
+  })
+  if (!resp.ok) throw new Error(`update workspace failed: ${resp.status}`)
+  return resp.json()
+}
+```
+
+## List workspaces
+
+Endpoint: GET `/teams`
+
+Supports `page` and `page_size` query parameters. Example:
+
+```bash
+curl "https://api.partner.com/v1/teams?page=1&page_size=20" \
+  -H "Authorization: Bearer $FIRMA_API_KEY"
+```
+
+Response shape contains `results` (array of `Team`) and `pagination` metadata.
+
+## RBAC and API key best practices
+
+- Use scoped API keys where possible: keep a server-only master API key and create per-workspace API keys for integration partners if your platform supports it.
+- Never return API keys to the browser. For operations initiated by end users, call your backend which performs the API call to Firma.
+- Use idempotency where supported (for endpoints that accept `Idempotency-Key`) to avoid double-creation from retries.
+
+## Edge cases & troubleshooting
+
+- Duplicate names: workspace names are display-friendly and may not be unique; use the `id` for programmatic references.
+- Protected workspaces: the `protected` flag indicates system-owned workspaces that cannot be deleted or modified by normal flows.
+- Rate limits & errors: inspect non-2xx responses for `{ error, code }` and surface meaningful messages to operators.
+
+## Next steps
+
+- If you'd like, I can add example tests (unit/integration) for these server functions and a small CLI to create/list workspaces locally.

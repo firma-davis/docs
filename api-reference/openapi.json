@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "https://ielmshcswdhuacyjlpiy.supabase.co/functions/v1/signing-request-api",
+      "url": "https://api.firma.dev/functions/v1/signing-request-api",
       "description": "Production server"
     },
     {

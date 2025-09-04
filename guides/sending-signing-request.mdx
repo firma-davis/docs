@@ -1,0 +1,140 @@
+---
+title: "Sending a signing request"
+description: "How to create and send signing requests to recipients."
+icon: 'paper-airplane'
+---
+
+# Sending a signing request
+
+This guide covers creating a signing request, attaching a template or document, and inviting recipients to sign.
+
+## Steps
+
+1. Create or select a template
+2. Create a signing request referencing the template
+3. Add recipients and define roles and signing order
+4. Optionally embed the signing view or send email invites
+
+## Example (high level)
+
+```json
+{
+  "template_id": "tmpl_123",
+  "recipients": [
+    { "email": "alice@example.com", "role": "signer" }
+  ]
+}
+```
+
+> TODO: Link to API reference examples and include response schemas.
+
+## Create a signing request from a template (API)
+
+Endpoint (OpenAPI): POST /templates/{template_id}/create-signing-request
+
+Example curl (create request from template):
+
+```bash
+curl -X POST "https://api.partner.com/v1/templates/tmpl_123/create-signing-request" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "NDA - Acme Corp",
+    "recipients": [
+      { "name": "Alice", "email": "alice@example.com", "order": 1 }
+    ]
+  }'
+```
+
+Successful response (201) returns a `Document` resource including `id` (the signing_request_id) and `document_url` where appropriate.
+
+## Create a signing request (server example) — Node (fetch)
+
+```js
+const fetch = require('node-fetch')
+
+async function createFromTemplate(templateId) {
+  const resp = await fetch(`https://api.partner.com/v1/templates/${templateId}/create-signing-request`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: 'NDA - Acme Corp',
+      recipients: [{ name: 'Alice', email: 'alice@example.com', order: 1 }]
+    })
+  })
+  if (!resp.ok) throw new Error('failed to create')
+  const body = await resp.json()
+  return body // contains id, document_url, recipients, etc.
+}
+```
+
+## Create a signing request (server example) — Python (requests)
+
+```py
+import os
+import requests
+
+def create_from_template(template_id):
+    url = f"https://api.partner.com/v1/templates/{template_id}/create-signing-request"
+    resp = requests.post(url, headers={
+        'Authorization': f"Bearer {os.environ['FIRMA_API_KEY']}",
+        'Content-Type': 'application/json'
+    }, json={
+        'name': 'NDA - Acme Corp',
+        'recipients': [{ 'name': 'Alice', 'email': 'alice@example.com', 'order': 1 }]
+    })
+    resp.raise_for_status()
+    return resp.json()
+```
+
+## Sending (email invites)
+
+Once you have a signing request ID, you can call POST /signing-requests/{signing_request_id}/send to send emails to all recipients. Optionally include a `custom_message` in the body.
+
+Example:
+
+```bash
+curl -X POST "https://api.partner.com/v1/signing-requests/sr_abc123/send" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "custom_message": "Please sign this NDA by EOD." }'
+```
+
+## Embedding the signing view
+
+The public signing UI is available at the pattern:
+
+`https://app.firma.dev/signing/{signing_request_user_id}`
+
+Notes:
+
+- The `signing_request_user_id` is typically returned as part of the `recipients` object or as a per-recipient token; check the response from GET /signing-requests/{id} for recipient-level signing links or tokens.
+- If the API returns a direct `document_url` or `embed_url`, use that. If not, generate an ephemeral signing link server-side and return it to the frontend.
+
+### Example — fetch signing details and render iframe
+
+```js
+// fetch signing request
+const r = await fetch('/internal/signing-request/' + signingRequestId)
+const json = await r.json()
+// assume json.recipients[0].signing_url exists
+const signingUrl = json.recipients[0].signing_url || json.document_url || `https://app.firma.dev/signing/${json.id}`
+const iframe = document.createElement('iframe')
+iframe.src = signingUrl
+iframe.style.width = '100%'
+iframe.style.height = '900px'
+document.getElementById('signing-root').appendChild(iframe)
+```
+
+## Edge cases & tips
+
+- If you have multiple signers, ensure `order` is set when `use_signing_order` is true on the template/document.
+- For audit and compliance, download the final PDF via GET /signing-requests/{signing_request_id}/download after completion.
+- Use webhooks (see the Webhooks guide) to react to signing events instead of polling.
+
+## Next steps
+
+- I can add exact response examples that include `signing_url` or `signing_request_user_id` if you want me to extract a sample response from a recorded real API response. If you don't have one, I can propose a canonical response shape and then update the API reference pages to match.

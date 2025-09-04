@@ -1,0 +1,179 @@
+---
+title: "Embeddable template editor"
+description: "How to embed and configure the template editor in your product."
+icon: 'pencil-square'
+---
+
+# Embeddable template editor
+
+You can embed Firma's template editor inside your application using an iframe or a dedicated SDK. The editor URL pattern is:
+
+`https://app.firma.dev/templateEditor/{template_id}`
+
+## Embed via iframe
+
+A minimal iframe embed looks like this:
+
+```html
+<iframe src="https://app.firma.dev/templateEditor/{template_id}" style="width:100%;height:800px;border:0;" allow="clipboard-write"></iframe>
+```
+
+## Recommended integration points
+
+- Pass the current user's workspace or auth token so the editor loads the correct templates.
+- Listen for postMessage events from the editor to react to saves, publish, or close events.
+
+> TODO: Add postMessage event schema and example code snippets.
+
+## Recommended integration (secure, production-ready)
+
+Use a small server-side endpoint to request an embedded JWT token from the Firma API and return a short-lived embed URL to your frontend. The OpenAPI for this repo exposes:
+
+- POST /templates/{template_id}/embed-token — returns { token, expires_at, embed_url }
+
+Server responsibilities:
+
+- Use your server API key (never expose it to the browser).
+- Request an embed token scoped to the template and an expiry (short-lived, e.g. 1 hour).
+- Return only the embed_url (or token) to the authenticated frontend user.
+
+### Server example — Node (Express, server-side)
+
+```js
+// server.js (Node)
+import express from 'express'
+import fetch from 'node-fetch'
+
+const app = express()
+const FIRMA_API_BASE = process.env.FIRMA_API_BASE || 'https://api.partner.com/v1'
+const API_KEY = process.env.FIRMA_API_KEY
+
+app.get('/internal/embed/template/:templateId', async (req, res) => {
+	const { templateId } = req.params
+	const resp = await fetch(`${FIRMA_API_BASE}/templates/${templateId}/embed-token`, {
+		method: 'POST',
+		headers: {
+			'Authorization': `Bearer ${API_KEY}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ expiration_hours: 2 })
+	})
+	if (!resp.ok) return res.status(resp.status).send(await resp.text())
+	const body = await resp.json()
+	// body: { token, expires_at, embed_url }
+	res.json({ embed_url: body.embed_url, expires_at: body.expires_at })
+})
+
+app.listen(3000)
+```
+
+### Server example — Python (Flask, server-side)
+
+```py
+# server.py
+from flask import Flask, jsonify
+import os
+import requests
+
+app = Flask(__name__)
+FIRMA_API_BASE = os.getenv('FIRMA_API_BASE', 'https://api.partner.com/v1')
+API_KEY = os.getenv('FIRMA_API_KEY')
+
+@app.route('/internal/embed/template/<template_id>')
+def embed_token(template_id):
+		url = f"{FIRMA_API_BASE}/templates/{template_id}/embed-token"
+		resp = requests.post(url, headers={
+				'Authorization': f'Bearer {API_KEY}',
+				'Content-Type': 'application/json'
+		}, json={ 'expiration_hours': 2 })
+		resp.raise_for_status()
+		return jsonify(resp.json())
+
+if __name__ == '__main__':
+		app.run(port=3000)
+```
+
+### Client usage (browser)
+
+Call your server endpoint to get the `embed_url` and render an iframe. The `embed_url` returned by the API is safe to place into an iframe because the token is short-lived and signed.
+
+```js
+async function loadEditor(templateId) {
+	const r = await fetch(`/internal/embed/template/${templateId}`)
+	const { embed_url } = await r.json()
+	const iframe = document.createElement('iframe')
+	iframe.src = embed_url
+	iframe.style.width = '100%'
+	iframe.style.height = '800px'
+	iframe.frameBorder = '0'
+	document.getElementById('editor-root').appendChild(iframe)
+}
+```
+
+## postMessage events (editor → host)
+
+Firma's editor will emit postMessage events for important lifecycle actions. Below is a recommended, minimal event schema you can implement for reacting to editor saves and publishes. If you have a canonical schema in your platform, replace these with your official event names.
+
+Event envelope (window.postMessage payload):
+
+```json
+{
+	"type": "editor.event",
+	"event": "editor.saved", // or editor.published, editor.closed
+	"payload": {
+		"template_id": "tmpl_123",
+		"updated_at": "2025-09-04T12:34:56Z",
+		"draft": false
+	}
+}
+```
+
+### Client listener example (plain JS)
+
+```js
+window.addEventListener('message', (ev) => {
+	// 1) Validate origin
+	if (ev.origin !== 'https://app.firma.dev') return
+	// 2) Validate shape
+	const data = ev.data || {}
+	if (data.type !== 'editor.event') return
+
+	switch (data.event) {
+		case 'editor.saved':
+			console.log('Template saved', data.payload)
+			// Optionally fetch the latest template via API
+			break
+		case 'editor.published':
+			console.log('Template published', data.payload)
+			break
+		case 'editor.closed':
+			console.log('Editor closed')
+			break
+		default:
+			break
+	}
+})
+```
+
+### Sending messages to the iframe (host → editor)
+
+If the editor supports initialization via postMessage (common for embedded apps), you can send a small init message after the iframe loads with a short-lived token. Example:
+
+```js
+const iframe = document.querySelector('#editor-root iframe')
+iframe.addEventListener('load', () => {
+	iframe.contentWindow.postMessage({ type: 'editor.init', token: '<JWT_TOKEN>' }, 'https://app.firma.dev')
+})
+```
+
+## Security considerations
+
+- Never expose your main API key in the browser. Use a server endpoint to mint embed tokens (see server examples).
+- Keep embed tokens short-lived (1–2 hours recommended).
+- Validate message origins in your postMessage listeners.
+- Scope the JWT token to the specific template and operations needed (read/write as required).
+
+## Next steps
+
+- Add example SDK wrappers for common stacks (React/Vue) if you want a reusable integration component.
+- If you want, I can add a concrete postMessage event catalogue matching the editor's real payloads — provide the editor's event names or I can propose a full spec.

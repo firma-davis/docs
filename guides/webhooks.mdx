@@ -1,0 +1,32 @@
+---
+title: "Webhooks"
+description: "Using webhooks to track signing events and updates from Firma."
+icon: 'bolt'
+---
+
+# Webhooks
+
+Firma can notify your application about signing lifecycle events via webhooks. Common events:
+
+- signing_request.created
+- signing_request.signed
+- signing_request.completed
+- template.updated
+
+## Recommended webhook flow
+
+1. Register a webhook URL in the dashboard or via API
+2. Validate incoming webhook signatures
+3. Acknowledge delivery with a 2xx status code
+4. Process events idempotently
+
+## Example payload
+
+```json
+{
+  "event": "signing_request.signed",
+  "data": { "id": "sr_123", "template_id": "tmpl_456" }
+}
+```
+
+> TODO: Include signature verification examples and retry behavior details.
