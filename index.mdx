@@ -3,9 +3,7 @@ description: "Only 2.9¢ per envelope, no minimums, no contracts. Made for SaaS 
 title: "Firma.dev E-signature API"
 ---
 
-## Introduction
-
-Welcome to Firma — embeddable document signing for SaaS products. This guide helps product and engineering teams quickly understand how to integrate Firma into their apps.
+## 
 
 ## What is Firma?
 
@@ -14,6 +12,55 @@ Firma provides hosted signing flows and an embeddable template editor so you can
 - Create siloed workspaces for each of your customers so their data stays separated.
 - Embed a template editor so users can design documents inside your app.
 - Embed the signing experience so signers can sign without leaving your interface.
+
+
+
+
+
+# Build e-signature into your product in hours
+
+Pay as you go at **$0.029 per envelope**.  
+No minimums. A clean API and embedded editors that help you ship fast.
+
+:::info
+**Get started free at [firma.dev](https://firma.dev)**.  
+No credit card required.
+:::
+
+---
+
+## Quick start
+
+:::steps
+1. **Create an API key**  
+   Visit the dashboard to create a secret key and a workspace for your first customer.
+
+2. **Create a template**  
+   Use the **Embeddable Template Editor** to define fields, recipients, and roles. Save once, reuse forever.
+
+3. **Send your first envelope**  
+   Call `POST /v1/envelopes` with the template ID and recipients. Embed the signing URL in your app or email it.
+:::
+
+```bash
+curl https://api.firma.dev/v1/envelopes \
+  -H "Authorization: Bearer $FIRMA_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "template_id": "tpl_123",
+    "recipients": [
+      { "email": "alex@example.com", "role": "signer" }
+    ],
+    "metadata": { "order_id": "ord_981" }
+  }'
+
+
+
+
+
+
+
+
 
 ## Embeddable links
 
