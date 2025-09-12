@@ -1,7 +1,7 @@
 ---
 title: "Sending a signing request"
 description: "How to create and send signing requests to recipients."
-icon: 'paper-airplane'
+icon: "paper-airplane"
 ---
 
 # Sending a signing request
@@ -26,11 +26,9 @@ This guide covers creating a signing request, attaching a template or document, 
 }
 ```
 
-> TODO: Link to API reference examples and include response schemas.
-
 ## Create a signing request from a template (API)
 
-Endpoint (OpenAPI): POST /templates/{template_id}/create-signing-request
+> Endpoint: POST /templates/template_id/create-signing-request
 
 Example curl (create request from template):
 
@@ -92,7 +90,7 @@ def create_from_template(template_id):
 
 ## Sending (email invites)
 
-Once you have a signing request ID, you can call POST /signing-requests/{signing_request_id}/send to send emails to all recipients. Optionally include a `custom_message` in the body.
+Once you have a signing request ID, you can call POST /signing-requests/signing_request_id/send to send emails to all recipients. Optionally include a `custom_message` in the body.
 
 Example:
 
@@ -111,7 +109,7 @@ The public signing UI is available at the pattern:
 
 Notes:
 
-- The `signing_request_user_id` is typically returned as part of the `recipients` object or as a per-recipient token; check the response from GET /signing-requests/{id} for recipient-level signing links or tokens.
+- The `signing_request_user_id` is typically returned as part of the `recipients` object or as a per-recipient token; check the response from GET /signing-requests/id for recipient-level signing links or tokens.
 - If the API returns a direct `document_url` or `embed_url`, use that. If not, generate an ephemeral signing link server-side and return it to the frontend.
 
 ### Example — fetch signing details and render iframe
@@ -132,9 +130,5 @@ document.getElementById('signing-root').appendChild(iframe)
 ## Edge cases & tips
 
 - If you have multiple signers, ensure `order` is set when `use_signing_order` is true on the template/document.
-- For audit and compliance, download the final PDF via GET /signing-requests/{signing_request_id}/download after completion.
+- For audit and compliance, download the final PDF via GET /signing-requests/signing_request_id/download after completion.
 - Use webhooks (see the Webhooks guide) to react to signing events instead of polling.
-
-## Next steps
-
-- I can add exact response examples that include `signing_url` or `signing_request_user_id` if you want me to extract a sample response from a recorded real API response. If you don't have one, I can propose a canonical response shape and then update the API reference pages to match.
