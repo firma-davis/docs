@@ -4,11 +4,9 @@ description: "How to embed and configure the template editor in your product."
 icon: "pencil-square"
 ---
 
-# Embeddable template editor
-
 You can embed Firma's template editor inside your application using an iframe or a dedicated SDK. The editor URL pattern is:
 
-`https://app.firma.dev/templateEditor/{template_id}`
+> `https://app.firma.dev/templateEditor/{template_id}`
 
 ## Embed via iframe
 
@@ -27,7 +25,7 @@ A minimal iframe embed looks like this:
 
 Use a small server-side endpoint to request an embedded JWT token from the Firma API and return a short-lived embed URL to your frontend. The OpenAPI for this repo exposes:
 
-- POST /templates/template_id/embed-token — returns  token, expires_at, embed_url 
+- POST /templates/template_id/embed-token — returns  token, expires_at, embed_url
 
 Server responsibilities:
 
