@@ -16,8 +16,8 @@
           {
             "group": "Starter guides",
             "pages": [
-              "guides/embeddable-template-editor",
               "guides/creating-workspaces",
+              "guides/embeddable-template-editor",
               "guides/sending-signing-request",
               "guides/embeddable-signing",
               "guides/webhooks"
