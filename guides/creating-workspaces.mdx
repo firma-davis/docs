@@ -44,7 +44,7 @@ Required body: `{ "name": "string" }`
 Example (curl):
 
 ```bash
-curl -X POST "https://api.partner.com/v1/workspacess" \
+curl -X POST "https://api.firma.dev/v1/workspacess" \
   -H "Authorization: Bearer $FIRMA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "Acme Corp Workspace" }'
@@ -88,7 +88,7 @@ import os
 import requests
 
 def create_workspace(name):
-    url = 'https://api.partner.com/v1/workspaces'
+    url = 'https://api.firma.dev/v1/workspaces'
     resp = requests.post(url, headers={
         'Authorization': f"Bearer {os.environ['FIRMA_API_KEY']}",
         'Content-Type': 'application/json'
@@ -104,7 +104,7 @@ Endpoint: GET `/workspaces/{workspace_id}`
 Example (curl):
 
 ```bash
-curl "https://api.partner.com/v1/workspaces/workspace_123" \
+curl "https://api.firma.dev/v1/workspaces/workspace_123" \
   -H "Authorization: Bearer $FIRMA_API_KEY"
 ```
 
@@ -117,7 +117,7 @@ Endpoint: PUT `/workspaces/{workspace_id}` — full resource replacement. Requir
 Example (curl):
 
 ```bash
-curl -X PUT "https://api.partner.com/v1/workspaces/workspace_123" \
+curl -X PUT "https://api.firma.dev/v1/workspaces/workspace_123" \
   -H "Authorization: Bearer $FIRMA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "Acme Corp - East Coast" }'
@@ -127,7 +127,7 @@ Server example — Node (fetch):
 
 ```js
 export async function updateWorkspace(teamId, name) {
-  const resp = await fetch(`https://api.partner.com/v1/workspaces/${workspaceId}`, {
+  const resp = await fetch(`https://api.firma.dev/v1/workspaces/${workspaceId}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
