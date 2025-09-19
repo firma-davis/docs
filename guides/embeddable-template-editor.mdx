@@ -41,7 +41,7 @@ import express from 'express'
 import fetch from 'node-fetch'
 
 const app = express()
-const FIRMA_API_BASE = process.env.FIRMA_API_BASE || 'https://api.partner.com/v1'
+const FIRMA_API_BASE = process.env.FIRMA_API_BASE || 'https://api.firma.dev/v1'
 const API_KEY = process.env.FIRMA_API_KEY
 
 app.get('/internal/embed/template/:templateId', async (req, res) => {
@@ -72,7 +72,7 @@ import os
 import requests
 
 app = Flask(__name__)
-FIRMA_API_BASE = os.getenv('FIRMA_API_BASE', 'https://api.partner.com/v1')
+FIRMA_API_BASE = os.getenv('FIRMA_API_BASE', 'https://api.firma.dev/v1')
 API_KEY = os.getenv('FIRMA_API_KEY')
 
 @app.route('/internal/embed/template/<template_id>')
