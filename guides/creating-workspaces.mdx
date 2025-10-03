@@ -38,24 +38,24 @@ Note: never expose your primary API key to end-user browsers. For per-workspace 
 
 ## Create a workspace
 
-Endpoint: POST `/workspacess`
+Endpoint: POST `/workspaces`
 
 Required body: `{ "name": "string" }`
 
 Example (curl):
 
 ```bash
-curl -X POST "https://api.firma.dev/v1/workspacess" \
+curl -X POST "https://api.firma.dev/v1/workspaces" \
   -H "Authorization: Bearer $FIRMA_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ "name": "Acme Corp Workspace" }'
 ```
 
-Successful response (201) returns the `Workspaces` resource with `id`, `name`, and timestamps. Example shape:
+Successful response (201) returns the `Workspace` resource with `id`, `name`, and timestamps. Example shape:
 
 ```json
 {
-  "id": "team_123",
+  "id": "workspace_123",
   "name": "Acme Corp Workspace",
   "protected": false,
   "created_date": "2025-09-04T12:00:00Z",
@@ -127,7 +127,7 @@ curl -X PUT "https://api.firma.dev/v1/workspaces/workspace_123" \
 Server example — Node (fetch):
 
 ```js
-export async function updateWorkspace(teamId, name) {
+export async function updateWorkspace(workspaceId, name) {
   const resp = await fetch(`https://api.firma.dev/v1/workspaces/${workspaceId}`, {
     method: 'PUT',
     headers: {

@@ -64,12 +64,12 @@
                 ]
               },
               {
-                "group": "Teams",
+                "group": "Workspaces",
                 "pages": [
-                  "api-reference/teams/list-teams",
-                  "api-reference/teams/create-team",
-                  "api-reference/teams/get-team",
-                  "api-reference/teams/update-team"
+                  "api-reference/workspaces/list-workspaces",
+                  "api-reference/workspaces/create-workspace",
+                  "api-reference/workspaces/get-workspace",
+                  "api-reference/workspaces/update-workspace"
                 ]
               },
               {
