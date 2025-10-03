@@ -1,26 +1,36 @@
 ---
 title: "Sending a signing request"
-description: "This guide covers creating a signing request, attaching a template or document, and inviting recipients to sign."
-icon: "paper-plane"
+description: "How to create and send signing requests to recipients."
+icon: 'paper-airplane'
 ---
+
+# Sending a signing request
+
+This guide covers creating a signing request, attaching a template or document, and inviting recipients to sign.
 
 ## Steps
 
 1. Create or select a template
 2. Create a signing request referencing the template
-3. Add recipients and define roles and signing order
-4. Optionally embed the signing view or send email invites
+3. Add recipients with required information (first name, last name, email)
+4. Optionally add form fields with percentage-based positioning
+5. Send the request via email or embed the signing view
 
-## Example (high level)
+## Recipient Schema (Required Fields)
 
-```json
-{
-  "template_id": "tmpl_123",
-  "recipients": [
-    { "email": "alice@example.com", "role": "signer" }
-  ]
-}
-```
+<Warning>
+**Breaking Change**: Recipients now require `first_name` and `last_name` separately instead of a single `name` field.
+</Warning>
+
+Each recipient must include:
+- `first_name` (required) - Recipient's first name
+- `last_name` (required) - Recipient's last name  
+- `email` (required) - Valid email address
+- `order` (optional) - Signing order when `use_signing_order` is enabled
+
+Optional fields:
+- `designation` - Role (e.g., "Signer", "Approver")
+- `phone_number`, `street_address`, `city`, `state_province`, `postal_code`, `country`, `title`
 
 ## Create a signing request from a template (API)
 
@@ -35,7 +45,12 @@ curl -X POST "https://api.firma.dev/v1/templates/tmpl_123/create-signing-request
   -d '{
     "name": "NDA - Acme Corp",
     "recipients": [
-      { "name": "Alice", "email": "alice@example.com", "order": 1 }
+      { 
+        "first_name": "Alice",
+        "last_name": "Johnson",
+        "email": "alice@example.com",
+        "order": 1
+      }
     ]
   }'
 ```
@@ -56,7 +71,14 @@ async function createFromTemplate(templateId) {
     },
     body: JSON.stringify({
       name: 'NDA - Acme Corp',
-      recipients: [{ name: 'Alice', email: 'alice@example.com', order: 1 }]
+      recipients: [
+        { 
+          first_name: 'Alice',
+          last_name: 'Johnson',
+          email: 'alice@example.com',
+          order: 1
+        }
+      ]
     })
   })
   if (!resp.ok) throw new Error('failed to create')
@@ -78,17 +100,110 @@ def create_from_template(template_id):
         'Content-Type': 'application/json'
     }, json={
         'name': 'NDA - Acme Corp',
-        'recipients': [{ 'name': 'Alice', 'email': 'alice@example.com', 'order': 1 }]
+        'recipients': [
+            {
+                'first_name': 'Alice',
+                'last_name': 'Johnson',
+                'email': 'alice@example.com',
+                'order': 1
+            }
+        ]
     })
     resp.raise_for_status()
     return resp.json()
 ```
 
+## Adding form fields (percentage-based positioning)
+
+<Warning>
+**Critical**: All field position coordinates (x, y, width, height) must be **percentages (0-100)** relative to page dimensions, not pixels. The `page_number` field is required.
+</Warning>
+
+When creating a signing request directly (POST `/signing-requests`) or updating one, you can add form fields:
+
+### Field positioning example
+
+```json
+{
+  "name": "Contract with Fields",
+  "recipients": [
+    {
+      "first_name": "Bob",
+      "last_name": "Smith",
+      "email": "bob@example.com"
+    }
+  ],
+  "fields": [
+    {
+      "type": "signature",
+      "required": true,
+      "recipient_id": "recipient_uuid_here",
+      "page_number": 1,
+      "position": {
+        "x": 10,
+        "y": 80,
+        "width": 30,
+        "height": 8
+      }
+    },
+    {
+      "type": "text",
+      "required": true,
+      "recipient_id": "recipient_uuid_here",
+      "variable_name": "company_name",
+      "page_number": 1,
+      "position": {
+        "x": 50,
+        "y": 20,
+        "width": 40,
+        "height": 5
+      }
+    },
+    {
+      "type": "date",
+      "required": true,
+      "page_number": 1,
+      "date_signing_default": true,
+      "position": {
+        "x": 10,
+        "y": 90,
+        "width": 20,
+        "height": 4
+      }
+    }
+  ]
+}
+```
+
+### Field types
+
+- `signature` - Signature field
+- `text` - Single-line text input
+- `textarea` - Multi-line text input
+- `date` - Date picker
+- `checkbox` - Checkbox
+- `dropdown` - Dropdown selector (requires `dropdown_options`)
+- `radio` - Radio button (requires `multi_group_id` to group options)
+
+### Positioning guidelines
+
+The coordinate system uses percentages for responsive scaling:
+- `x`: 0 (left edge) to 100 (right edge)
+- `y`: 0 (top edge) to 100 (bottom edge)
+- `width`: percentage of page width (e.g., 30 = 30% width)
+- `height`: percentage of page height (e.g., 8 = 8% height)
+
+<Tip>
+For a US Letter page (8.5" × 11"), use these rough conversions:
+- 1 inch ≈ 11.76% width
+- 1 inch ≈ 9.09% height
+</Tip>
+
 ## Sending (email invites)
 
-Once you have a signing request ID, you can call POST /signing-requests/signing_request_id/send to send emails to all recipients. Optionally include a `custom_message` in the body.
+Once you have a signing request ID, call POST `/signing-requests/{signing_request_id}/send` to send emails to all recipients.
 
-Example:
+### Example
 
 ```bash
 curl -X POST "https://api.firma.dev/v1/signing-requests/sr_abc123/send" \
@@ -96,6 +211,10 @@ curl -X POST "https://api.firma.dev/v1/signing-requests/sr_abc123/send" \
   -H "Content-Type: application/json" \
   -d '{ "custom_message": "Please sign this NDA by EOD." }'
 ```
+
+<Note>
+The `/send` endpoint validates that all recipients have required information (`first_name`, `last_name`, `email`) and that any fields with `variable_name` have corresponding data in recipient records.
+</Note>
 
 ## Embedding the signing view
 
@@ -111,16 +230,44 @@ Notes:
 ### Example — fetch signing details and render iframe
 
 ```js
+### Getting the signing URL
+
+- The `signing_request_user_id` is returned in the `recipients` array after creation
+- Alternatively, fetch signing request details via GET `/signing-requests/{id}` to retrieve per-recipient signing links
+
+### Example — fetch signing details and render iframe
+
+```js
 // fetch signing request
 const r = await fetch('/internal/signing-request/' + signingRequestId)
 const json = await r.json()
-// assume json.recipients[0].signing_url exists
-const signingUrl = json.recipients[0].signing_url || json.document_url || `https://app.firma.dev/signing/${json.id}`
+
+// get recipient signing URL
+const recipient = json.recipients[0]
+const signingUrl = recipient.signing_url || `https://app.firma.dev/signing/${recipient.id}`
+
+// render iframe
 const iframe = document.createElement('iframe')
 iframe.src = signingUrl
 iframe.style.width = '100%'
 iframe.style.height = '900px'
+iframe.frameBorder = '0'
+iframe.allow = 'camera;microphone;clipboard-write'
 document.getElementById('signing-root').appendChild(iframe)
+```
+
+## Edge cases & tips
+
+- **Signing order**: If `use_signing_order` is true in document settings, ensure recipients have sequential `order` values (1, 2, 3...)
+- **Audit trail**: Download the audit trail via GET `/signing-requests/{id}/tracking` to see all user actions
+- **Download completed PDF**: Use GET `/signing-requests/{id}/download` after completion
+- **Webhooks**: Subscribe to events like `signing_request.completed` instead of polling (see [Webhooks guide](webhooks))
+
+## Next steps
+
+- [Set up webhooks](webhooks) to receive real-time event notifications
+- [Add automated reminders](../api-reference/signing-requests/create-signing-request-reminder) for pending recipients
+- [Embed the template editor](embeddable-template-editor) to let customers design their own documents
 ```
 
 ## Edge cases & tips

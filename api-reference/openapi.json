@@ -11,8 +11,18 @@
   },
   "servers": [
     {
-      "url": "https://api.firma.dev/v1",
-      "description": "Production domain"
+      "url": "https://ielmshcswdhuacyjlpiy.supabase.co/functions/v1/signing-request-api",
+      "description": "Production server"
+    },
+    {
+      "url": "https://{partner_api_base}/v1",
+      "description": "Custom partner domain",
+      "variables": {
+        "partner_api_base": {
+          "default": "api.partner.com",
+          "description": "Partner's custom API domain"
+        }
+      }
     }
   ],
   "security": [
@@ -204,22 +214,29 @@
         "properties": {
           "name": {
             "type": "string",
-            "maxLength": 255
+            "maxLength": 255,
+            "description": "Document name"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Optional document description"
           },
           "document_url": {
             "type": "string",
-            "format": "uri"
+            "format": "uri",
+            "description": "URL to the PDF document"
           },
           "page_count": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "description": "Total number of pages in the document"
           },
           "expiration_hours": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "default": 168,
+            "description": "Hours until document expires (default: 168 = 7 days)"
           },
           "settings": {
             "$ref": "#/components/schemas/DocumentSettings"
@@ -228,7 +245,15 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CreateRecipient"
-            }
+            },
+            "description": "List of recipients who will interact with this document"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateField"
+            },
+            "description": "Form fields placed on the document. IMPORTANT: All position coordinates must be percentages (0-100), not pixels."
           }
         }
       },
@@ -367,9 +392,20 @@
             "type": "string",
             "format": "uuid"
           },
+          "first_name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Recipient's first name"
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Recipient's last name"
+          },
           "name": {
             "type": "string",
-            "maxLength": 255
+            "maxLength": 255,
+            "description": "Full name (auto-generated from first_name + last_name)"
           },
           "email": {
             "type": "string",
@@ -377,38 +413,132 @@
           },
           "designation": {
             "type": "string",
-            "maxLength": 255
+            "maxLength": 255,
+            "description": "Role (e.g., 'Signer', 'Approver', 'CC')"
+          },
+          "phone_number": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "Contact phone number"
+          },
+          "street_address": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Street address"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "City"
+          },
+          "state_province": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "State or province"
+          },
+          "postal_code": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Postal/ZIP code"
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Country"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Professional title"
           },
           "order": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "description": "Signing order (when use_signing_order is enabled)"
+          },
+          "finished_date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when recipient completed their action"
+          },
+          "signature_details": {
+            "type": "object",
+            "nullable": true,
+            "description": "Details about the recipient's signature"
           }
         }
       },
       "CreateRecipient": {
         "type": "object",
         "required": [
-          "name",
+          "first_name",
+          "last_name",
           "email"
         ],
         "properties": {
-          "name": {
+          "first_name": {
             "type": "string",
-            "maxLength": 255
+            "maxLength": 255,
+            "description": "Recipient's first name"
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Recipient's last name"
           },
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "Recipient's email address"
           },
           "designation": {
             "type": "string",
-            "maxLength": 255
+            "maxLength": 255,
+            "description": "Role (e.g., 'Signer', 'Approver', 'CC')"
+          },
+          "phone_number": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "Contact phone number"
+          },
+          "street_address": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Street address"
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "City"
+          },
+          "state_province": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "State or province"
+          },
+          "postal_code": {
+            "type": "string",
+            "maxLength": 20,
+            "description": "Postal/ZIP code"
+          },
+          "country": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Country"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Professional title"
           },
           "order": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "description": "Signing order (when use_signing_order is enabled)"
           }
-        }
+        },
+        "description": "Note: The 'name' field is auto-generated from first_name + last_name on the server"
       },
       "Field": {
         "type": "object",
@@ -421,24 +551,156 @@
             "type": "string",
             "enum": [
               "signature",
+              "initials",
               "text",
               "date",
               "checkbox",
+              "radio_buttons",
               "dropdown",
-              "radio"
-            ]
+              "textarea"
+            ],
+            "description": "Field type - determines input behavior and validation"
           },
           "required": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "Whether this field must be filled"
           },
           "recipient_id": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true,
+            "description": "ID of recipient this field is assigned to"
           },
           "variable_name": {
             "type": "string",
-            "maxLength": 100
+            "maxLength": 100,
+            "description": "Variable identifier for the field"
+          },
+          "page_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Page number where field appears (1-indexed)"
+          },
+          "position": {
+            "$ref": "#/components/schemas/FieldPosition"
+          },
+          "value": {
+            "type": "string",
+            "nullable": true,
+            "description": "Final value after completion"
+          },
+          "dropdown_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Options for dropdown fields"
+          },
+          "format_rules": {
+            "type": "object",
+            "nullable": true,
+            "description": "Formatting rules (e.g., date format)"
+          },
+          "validation_rules": {
+            "type": "object",
+            "nullable": true,
+            "description": "Validation rules (e.g., regex patterns)"
+          },
+          "multi_group_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Group ID for radio button groups - all radio buttons with same group_id act as mutually exclusive options"
+          },
+          "date_default": {
+            "type": "string",
+            "nullable": true,
+            "description": "Default date value (ISO 8601 format)"
+          },
+          "date_signing_default": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, date field defaults to the date when recipient signs"
+          }
+        }
+      },
+      "FieldPosition": {
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "width",
+          "height"
+        ],
+        "properties": {
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Horizontal position as percentage (0-100) from left edge of page"
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Vertical position as percentage (0-100) from top edge of page"
+          },
+          "width": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Width as percentage (0-100) of page width"
+          },
+          "height": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Height as percentage (0-100) of page height"
+          }
+        },
+        "description": "All coordinates are percentages (0-100) relative to page dimensions, not pixels. This ensures fields scale correctly across different screen sizes."
+      },
+      "CreateField": {
+        "type": "object",
+        "required": [
+          "type",
+          "page_number",
+          "position"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "signature",
+              "initials",
+              "text",
+              "date",
+              "checkbox",
+              "radio_buttons",
+              "dropdown",
+              "textarea"
+            ],
+            "description": "Type of field to create"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this field must be filled"
+          },
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Required for recipient-specific fields. Omit for shared fields."
+          },
+          "variable_name": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Variable identifier for programmatic access"
+          },
+          "page_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Page number where field should appear (1-indexed)"
           },
           "position": {
             "$ref": "#/components/schemas/FieldPosition"
@@ -447,32 +709,30 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "minItems": 1,
+            "description": "Required for dropdown fields - array of option strings"
           },
           "format_rules": {
-            "type": "object"
+            "type": "object",
+            "description": "Custom formatting rules (e.g., date format patterns)"
           },
           "validation_rules": {
-            "type": "object"
-          }
-        }
-      },
-      "FieldPosition": {
-        "type": "object",
-        "properties": {
-          "x": {
-            "type": "number"
+            "type": "object",
+            "description": "Custom validation rules (e.g., regex patterns, min/max values)"
           },
-          "y": {
-            "type": "number"
+          "multi_group_id": {
+            "type": "string",
+            "description": "Required for radio_buttons - groups radio buttons together so only one can be selected"
           },
-          "width": {
-            "type": "number",
-            "minimum": 1
+          "date_default": {
+            "type": "string",
+            "description": "Default date value in ISO 8601 format (YYYY-MM-DD)"
           },
-          "height": {
-            "type": "number",
-            "minimum": 1
+          "date_signing_default": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, date field auto-fills with signing date"
           }
         }
       },
@@ -519,6 +779,497 @@
           "error",
           "code"
         ]
+      },
+      "Webhook": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique webhook identifier"
+          },
+          "companies_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company ID this webhook belongs to"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Destination URL for webhook events"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the webhook is active"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "signing_request.created",
+                "signing_request.sent",
+                "signing_request.viewed",
+                "signing_request.completed",
+                "signing_request.cancelled",
+                "signing_request.expired",
+                "recipient.viewed",
+                "recipient.signed",
+                "recipient.declined",
+                "template.created",
+                "template.updated",
+                "template.deleted",
+                "company.updated",
+                "workspace.created",
+                "workspace.updated"
+              ]
+            },
+            "description": "List of event types this webhook subscribes to"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional description of webhook purpose"
+          },
+          "consecutive_failures": {
+            "type": "integer",
+            "description": "Number of consecutive delivery failures"
+          },
+          "last_failure_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of last delivery failure"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "companies_id",
+          "url",
+          "enabled",
+          "events"
+        ]
+      },
+      "CreateWebhook": {
+        "type": "object",
+        "required": [
+          "url",
+          "events"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Destination URL for webhook events (must be HTTPS)"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "signing_request.created",
+                "signing_request.sent",
+                "signing_request.viewed",
+                "signing_request.completed",
+                "signing_request.cancelled",
+                "signing_request.expired",
+                "recipient.viewed",
+                "recipient.signed",
+                "recipient.declined",
+                "template.created",
+                "template.updated",
+                "template.deleted",
+                "company.updated",
+                "workspace.created",
+                "workspace.updated"
+              ]
+            },
+            "minItems": 1,
+            "description": "List of event types to subscribe to"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "UpdateWebhook": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Enable or disable webhook"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "signing_request.created",
+                "signing_request.sent",
+                "signing_request.viewed",
+                "signing_request.completed",
+                "signing_request.cancelled",
+                "signing_request.expired",
+                "recipient.viewed",
+                "recipient.signed",
+                "recipient.declined",
+                "template.created",
+                "template.updated",
+                "template.deleted",
+                "company.updated",
+                "workspace.created",
+                "workspace.updated"
+              ]
+            }
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "WebhookEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique event identifier"
+          },
+          "webhook_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Associated webhook ID"
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "signing_request.created",
+              "signing_request.sent",
+              "signing_request.viewed",
+              "signing_request.completed",
+              "signing_request.cancelled",
+              "signing_request.expired",
+              "recipient.viewed",
+              "recipient.signed",
+              "recipient.declined",
+              "template.created",
+              "template.updated",
+              "template.deleted",
+              "company.updated",
+              "workspace.created",
+              "workspace.updated"
+            ],
+            "description": "Type of event that triggered this webhook"
+          },
+          "payload": {
+            "type": "object",
+            "description": "Event payload data sent to webhook URL"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "success",
+              "failed"
+            ],
+            "description": "Delivery status of this event"
+          },
+          "response_status": {
+            "type": "integer",
+            "description": "HTTP status code from webhook endpoint"
+          },
+          "response_body": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Response body from webhook endpoint (truncated)"
+          },
+          "error_message": {
+            "type": "string",
+            "description": "Error message if delivery failed"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "description": "Number of delivery attempts made"
+          },
+          "next_retry_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Scheduled time for next retry attempt"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "delivered_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when successfully delivered"
+          }
+        }
+      },
+      "WebhookPayload": {
+        "type": "object",
+        "description": "Standard webhook payload structure sent to your endpoint",
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique event identifier for idempotency"
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "signing_request.created",
+              "signing_request.sent",
+              "signing_request.viewed",
+              "signing_request.completed",
+              "signing_request.cancelled",
+              "signing_request.expired",
+              "recipient.viewed",
+              "recipient.signed",
+              "recipient.declined",
+              "template.created",
+              "template.updated",
+              "template.deleted",
+              "company.updated",
+              "workspace.created",
+              "workspace.updated"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp when event occurred"
+          },
+          "company_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workspace_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Workspace ID (if applicable)"
+          },
+          "data": {
+            "type": "object",
+            "description": "Event-specific payload data (structure varies by event_type)"
+          }
+        },
+        "required": [
+          "event_id",
+          "event_type",
+          "timestamp",
+          "company_id",
+          "data"
+        ]
+      },
+      "Reminder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "hours": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Hours after sending/last reminder to send this reminder"
+          },
+          "all_users": {
+            "type": "boolean",
+            "description": "If true, sends to all recipients; if false, sends to specific recipient_id"
+          },
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Specific recipient to remind (null if all_users=true)"
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Email subject line. Supports variables: {{signer_name}}, {{template_name}}, {{signing_request_name}}, {{team_name}}, {{expiration_date}}"
+          },
+          "message": {
+            "type": "string",
+            "description": "Email body content. Supports same variables as subject."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateReminder": {
+        "type": "object",
+        "required": [
+          "hours",
+          "subject",
+          "message"
+        ],
+        "properties": {
+          "hours": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "all_users": {
+            "type": "boolean",
+            "default": false
+          },
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Required if all_users=false"
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateReminder": {
+        "type": "object",
+        "properties": {
+          "hours": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "all_users": {
+            "type": "boolean"
+          },
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TrackingEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Recipient who performed the action"
+          },
+          "field_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Field that was interacted with (if applicable)"
+          },
+          "page": {
+            "type": "string",
+            "description": "Page or section where action occurred"
+          },
+          "date_of_action": {
+            "type": "string",
+            "format": "date"
+          },
+          "time": {
+            "type": "string",
+            "format": "time"
+          },
+          "browser": {
+            "type": "string",
+            "nullable": true,
+            "description": "Browser information"
+          },
+          "user_info": {
+            "type": "string",
+            "nullable": true,
+            "description": "User agent string"
+          },
+          "details": {
+            "type": "object",
+            "nullable": true,
+            "description": "Additional action-specific metadata"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Certificate": {
+        "type": "object",
+        "properties": {
+          "signing_request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "certificate_hash": {
+            "type": "string",
+            "description": "SHA-256 hash of the completed document"
+          },
+          "generated_on": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the certificate was generated"
+          },
+          "finished_on": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the last signature was completed"
+          },
+          "signers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "signed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "ip_address": {
+                  "type": "string",
+                  "nullable": true
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -705,22 +1456,43 @@
         "tags": [
           "Templates"
         ],
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "schema": {
-              "type": "string",
-              "maxLength": 255
-            }
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateTemplate"
+              },
+              "example": {
+                "name": "Employment Contract Template",
+                "description": "Standard employment agreement for new hires",
+                "document_url": "https://yourdomain.com/documents/employment-contract.pdf",
+                "page_count": 5,
+                "expiration_hours": 168,
+                "settings": {
+                  "use_signing_order": true,
+                  "allow_download": true,
+                  "attach_pdf_on_finish": true,
+                  "allow_editing_before_sending": false
+                },
+                "recipients": [
+                  {
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john.doe@example.com",
+                    "designation": "Signer",
+                    "order": 1,
+                    "title": "Software Engineer"
+                  },
+                  {
+                    "first_name": "Jane",
+                    "last_name": "Smith",
+                    "email": "jane.smith@company.com",
+                    "designation": "Approver",
+                    "order": 2,
+                    "title": "HR Manager"
+                  }
+                ]
               }
             }
           }
@@ -749,6 +1521,37 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Template"
+                },
+                "example": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "name": "Employment Contract Template",
+                  "description": "Standard employment agreement for new hires",
+                  "document_url": "https://yourdomain.com/documents/employment-contract.pdf",
+                  "page_count": 5,
+                  "expiration_hours": 168,
+                  "created_date": "2025-10-03T10:30:00Z",
+                  "updated_date": "2025-10-03T10:30:00Z",
+                  "settings": {
+                    "use_signing_order": true,
+                    "allow_download": true,
+                    "attach_pdf_on_finish": true,
+                    "allow_editing_before_sending": false
+                  },
+                  "recipients": [
+                    {
+                      "id": "650e8400-e29b-41d4-a716-446655440001",
+                      "first_name": "John",
+                      "last_name": "Doe",
+                      "name": "John Doe",
+                      "email": "john.doe@example.com",
+                      "designation": "Signer",
+                      "order": 1,
+                      "title": "Software Engineer",
+                      "finished_date": null,
+                      "signature_details": null
+                    }
+                  ],
+                  "fields": []
                 }
               }
             }
@@ -961,6 +1764,28 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateTemplate"
+              },
+              "example": {
+                "name": "Updated Employment Contract Template",
+                "description": "Revised employment agreement for new hires - v2",
+                "document_url": "https://yourdomain.com/documents/employment-contract-v2.pdf",
+                "page_count": 6,
+                "expiration_hours": 240,
+                "settings": {
+                  "use_signing_order": true,
+                  "allow_download": false,
+                  "attach_pdf_on_finish": true,
+                  "allow_editing_before_sending": true
+                },
+                "recipients": [
+                  {
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "john.doe@example.com",
+                    "designation": "Signer",
+                    "order": 1
+                  }
+                ]
               }
             }
           }
@@ -989,6 +1814,36 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Template"
+                },
+                "example": {
+                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                  "name": "Updated Employment Contract Template",
+                  "description": "Revised employment agreement for new hires - v2",
+                  "document_url": "https://yourdomain.com/documents/employment-contract-v2.pdf",
+                  "page_count": 6,
+                  "expiration_hours": 240,
+                  "created_date": "2025-10-03T10:30:00Z",
+                  "updated_date": "2025-10-03T14:45:00Z",
+                  "settings": {
+                    "use_signing_order": true,
+                    "allow_download": false,
+                    "attach_pdf_on_finish": true,
+                    "allow_editing_before_sending": true
+                  },
+                  "recipients": [
+                    {
+                      "id": "650e8400-e29b-41d4-a716-446655440001",
+                      "first_name": "John",
+                      "last_name": "Doe",
+                      "name": "John Doe",
+                      "email": "john.doe@example.com",
+                      "designation": "Signer",
+                      "order": 1,
+                      "finished_date": null,
+                      "signature_details": null
+                    }
+                  ],
+                  "fields": []
                 }
               }
             }
@@ -1249,6 +2104,388 @@
           },
           "413": {
             "description": "Payload Too Large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates/{template_id}/reminders": {
+      "get": {
+        "summary": "List Template Reminders",
+        "description": "Retrieve all reminders configured for a template. Reminders automatically send email notifications to recipients at specified intervals after the signing request is sent.",
+        "tags": [
+          "Templates",
+          "Reminders"
+        ],
+        "parameters": [
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reminders retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Reminder"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "results": [
+                    {
+                      "id": "750e8400-e29b-41d4-a716-446655440010",
+                      "hours": 24,
+                      "all_users": false,
+                      "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                      "subject": "Reminder: Please sign {{template_name}}",
+                      "message": "Hi {{signer_name}},\\n\\nThis is a friendly reminder to complete your signature on {{template_name}}.\\n\\nBest regards,\\n{{team_name}}",
+                      "created_at": "2025-10-03T10:30:00Z",
+                      "updated_at": "2025-10-03T10:30:00Z"
+                    },
+                    {
+                      "id": "850e8400-e29b-41d4-a716-446655440011",
+                      "hours": 72,
+                      "all_users": true,
+                      "recipient_id": null,
+                      "subject": "Final Reminder: {{template_name}} expires soon",
+                      "message": "This is your final reminder to sign {{template_name}}.",
+                      "created_at": "2025-10-03T10:30:00Z",
+                      "updated_at": "2025-10-03T10:30:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Template Reminder",
+        "description": "Add a reminder to a template. Reminders will be automatically applied to all signing requests created from this template.",
+        "tags": [
+          "Templates",
+          "Reminders"
+        ],
+        "parameters": [
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReminder"
+              },
+              "example": {
+                "hours": 48,
+                "all_users": false,
+                "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                "subject": "Reminder: {{template_name}} needs your signature",
+                "message": "Hi {{signer_name}},\\n\\nPlease sign {{template_name}} at your earliest convenience.\\n\\nThank you!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reminder created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reminder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/templates/{template_id}/reminders/{reminder_id}": {
+      "patch": {
+        "summary": "Update Template Reminder",
+        "description": "Modify an existing template reminder configuration.",
+        "tags": [
+          "Templates",
+          "Reminders"
+        ],
+        "parameters": [
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "reminder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReminder"
+              },
+              "example": {
+                "hours": 96,
+                "subject": "Updated Reminder: {{template_name}}"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reminder updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reminder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Template Reminder",
+        "description": "Remove a reminder from a template.",
+        "tags": [
+          "Templates",
+          "Reminders"
+        ],
+        "parameters": [
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "reminder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reminder deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -1641,30 +2878,11 @@
     "/signing-requests": {
       "get": {
         "summary": "List Signing Requests",
-        "description": "Retrieve all signing requests with pagination and filtering.",
+        "description": "Retrieve all signing requests. Note: Pagination is not currently implemented - all results are returned.",
         "tags": [
           "Signing Requests"
         ],
         "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "page_size",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            }
-          },
           {
             "name": "status",
             "in": "query",
@@ -1677,7 +2895,8 @@
                 "completed",
                 "cancelled"
               ]
-            }
+            },
+            "description": "Filter by signing request status"
           },
           {
             "name": "search",
@@ -1685,12 +2904,13 @@
             "schema": {
               "type": "string",
               "maxLength": 255
-            }
+            },
+            "description": "Search by document name"
           }
         ],
         "responses": {
           "200": {
-            "description": "Signing requests retrieved successfully",
+            "description": "Signing requests retrieved successfully (no pagination - all results returned)",
             "headers": {
               "X-RateLimit-Limit": {
                 "schema": {
@@ -1718,9 +2938,6 @@
                       "items": {
                         "$ref": "#/components/schemas/Document"
                       }
-                    },
-                    "pagination": {
-                      "$ref": "#/components/schemas/PaginationInfo"
                     }
                   }
                 }
@@ -1781,7 +2998,7 @@
       },
       "post": {
         "summary": "Create Signing Request",
-        "description": "Create a new signing request document.",
+        "description": "Create a new signing request document. **IMPORTANT**: All field position coordinates (x, y, width, height) must be specified as **percentages (0-100)** relative to the page dimensions, not pixels. The page_number field is required for each field and must be a positive integer (1-indexed).",
         "tags": [
           "Signing Requests"
         ],
@@ -1791,6 +3008,111 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateDocument"
+              },
+              "example": {
+                "name": "Q4 Sales Agreement - Acme Corp",
+                "description": "Annual sales agreement for fiscal year 2025",
+                "document_url": "https://yourdomain.com/documents/sales-agreement-2025.pdf",
+                "page_count": 8,
+                "expiration_hours": 336,
+                "settings": {
+                  "use_signing_order": true,
+                  "allow_download": true,
+                  "attach_pdf_on_finish": true,
+                  "allow_editing_before_sending": false
+                },
+                "recipients": [
+                  {
+                    "first_name": "Alice",
+                    "last_name": "Johnson",
+                    "email": "alice.johnson@acme.com",
+                    "designation": "Signer",
+                    "phone_number": "+1-555-0100",
+                    "street_address": "123 Business Ave",
+                    "city": "San Francisco",
+                    "state_province": "CA",
+                    "postal_code": "94105",
+                    "country": "USA",
+                    "title": "VP of Sales",
+                    "order": 1
+                  },
+                  {
+                    "first_name": "Bob",
+                    "last_name": "Williams",
+                    "email": "bob.williams@vendor.com",
+                    "designation": "Signer",
+                    "title": "Account Manager",
+                    "order": 2
+                  }
+                ],
+                "fields": [
+                  {
+                    "type": "signature",
+                    "required": true,
+                    "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                    "page_number": 8,
+                    "position": {
+                      "x": 15,
+                      "y": 75,
+                      "width": 25,
+                      "height": 8
+                    }
+                  },
+                  {
+                    "type": "date",
+                    "required": true,
+                    "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                    "page_number": 8,
+                    "date_signing_default": true,
+                    "position": {
+                      "x": 50,
+                      "y": 75,
+                      "width": 15,
+                      "height": 5
+                    }
+                  },
+                  {
+                    "type": "text",
+                    "required": false,
+                    "variable_name": "company_name",
+                    "page_number": 1,
+                    "position": {
+                      "x": 20,
+                      "y": 30,
+                      "width": 40,
+                      "height": 5
+                    }
+                  },
+                  {
+                    "type": "checkbox",
+                    "required": true,
+                    "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                    "page_number": 3,
+                    "position": {
+                      "x": 10,
+                      "y": 45,
+                      "width": 3,
+                      "height": 3
+                    }
+                  },
+                  {
+                    "type": "dropdown",
+                    "required": true,
+                    "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                    "dropdown_options": [
+                      "Annual",
+                      "Quarterly",
+                      "Monthly"
+                    ],
+                    "page_number": 2,
+                    "position": {
+                      "x": 30,
+                      "y": 60,
+                      "width": 20,
+                      "height": 5
+                    }
+                  }
+                ]
               }
             }
           }
@@ -1819,6 +3141,62 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Document"
+                },
+                "example": {
+                  "id": "350e8400-e29b-41d4-a716-446655440003",
+                  "name": "Q4 Sales Agreement - Acme Corp",
+                  "description": "Annual sales agreement for fiscal year 2025",
+                  "status": "draft",
+                  "document_url": "https://yourdomain.com/documents/sales-agreement-2025.pdf",
+                  "page_count": 8,
+                  "expiration_hours": 336,
+                  "created_date": "2025-10-03T10:30:00Z",
+                  "updated_date": "2025-10-03T10:30:00Z",
+                  "sent_date": null,
+                  "finished_date": null,
+                  "cancelled_date": null,
+                  "settings": {
+                    "use_signing_order": true,
+                    "allow_download": true,
+                    "attach_pdf_on_finish": true,
+                    "allow_editing_before_sending": false
+                  },
+                  "recipients": [
+                    {
+                      "id": "650e8400-e29b-41d4-a716-446655440001",
+                      "first_name": "Alice",
+                      "last_name": "Johnson",
+                      "name": "Alice Johnson",
+                      "email": "alice.johnson@acme.com",
+                      "designation": "Signer",
+                      "phone_number": "+1-555-0100",
+                      "street_address": "123 Business Ave",
+                      "city": "San Francisco",
+                      "state_province": "CA",
+                      "postal_code": "94105",
+                      "country": "USA",
+                      "title": "VP of Sales",
+                      "order": 1,
+                      "finished_date": null,
+                      "signature_details": null
+                    }
+                  ],
+                  "fields": [
+                    {
+                      "id": "450e8400-e29b-41d4-a716-446655440005",
+                      "type": "signature",
+                      "required": true,
+                      "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                      "page_number": 8,
+                      "position": {
+                        "x": 15,
+                        "y": 75,
+                        "width": 25,
+                        "height": 8
+                      },
+                      "value": null
+                    }
+                  ]
                 }
               }
             }
@@ -1966,7 +3344,7 @@
       },
       "put": {
         "summary": "Update Signing Request",
-        "description": "Update signing request with complete resource replacement.",
+        "description": "Update an existing signing request (draft only). **Edit Restrictions**: If `allow_editing_before_sending` is `false` (0), you can only update metadata and existing recipient/field data. You cannot add/delete recipients or fields. If `allow_editing_before_sending` is `true` (1), all operations are allowed. Recipients must include `id` field when updating existing recipients. **IMPORTANT**: All field position coordinates must be percentages (0-100).",
         "tags": [
           "Signing Requests"
         ],
@@ -1987,6 +3365,43 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateDocument"
+              },
+              "example": {
+                "name": "Updated Q4 Sales Agreement - Acme Corp",
+                "description": "Revised annual sales agreement for fiscal year 2025",
+                "document_url": "https://yourdomain.com/documents/sales-agreement-2025-v2.pdf",
+                "page_count": 9,
+                "expiration_hours": 336,
+                "settings": {
+                  "use_signing_order": true,
+                  "allow_download": true,
+                  "attach_pdf_on_finish": true,
+                  "allow_editing_before_sending": false
+                },
+                "recipients": [
+                  {
+                    "first_name": "Alice",
+                    "last_name": "Johnson",
+                    "email": "alice.johnson@acme.com",
+                    "designation": "Signer",
+                    "title": "VP of Sales",
+                    "order": 1
+                  }
+                ],
+                "fields": [
+                  {
+                    "type": "signature",
+                    "required": true,
+                    "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                    "page_number": 9,
+                    "position": {
+                      "x": 15,
+                      "y": 75,
+                      "width": 25,
+                      "height": 8
+                    }
+                  }
+                ]
               }
             }
           }
@@ -2015,12 +3430,47 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Document"
+                },
+                "example": {
+                  "id": "350e8400-e29b-41d4-a716-446655440003",
+                  "name": "Updated Q4 Sales Agreement - Acme Corp",
+                  "description": "Revised annual sales agreement for fiscal year 2025",
+                  "status": "draft",
+                  "document_url": "https://yourdomain.com/documents/sales-agreement-2025-v2.pdf",
+                  "page_count": 9,
+                  "expiration_hours": 336,
+                  "created_date": "2025-10-03T10:30:00Z",
+                  "updated_date": "2025-10-03T15:00:00Z",
+                  "sent_date": null,
+                  "finished_date": null,
+                  "cancelled_date": null,
+                  "settings": {
+                    "use_signing_order": true,
+                    "allow_download": true,
+                    "attach_pdf_on_finish": true,
+                    "allow_editing_before_sending": false
+                  },
+                  "recipients": [
+                    {
+                      "id": "650e8400-e29b-41d4-a716-446655440001",
+                      "first_name": "Alice",
+                      "last_name": "Johnson",
+                      "name": "Alice Johnson",
+                      "email": "alice.johnson@acme.com",
+                      "designation": "Signer",
+                      "title": "VP of Sales",
+                      "order": 1,
+                      "finished_date": null,
+                      "signature_details": null
+                    }
+                  ],
+                  "fields": []
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request",
+            "description": "Bad Request - Invalid request data",
             "content": {
               "application/json": {
                 "schema": {
@@ -2040,11 +3490,30 @@
             }
           },
           "403": {
-            "description": "Forbidden",
+            "description": "Forbidden - Edit operation not allowed due to allow_editing_before_sending restrictions or signing request status",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Cannot add new recipients when allow_editing_before_sending is disabled. You can only update existing recipient information."
+                    },
+                    "allow_editing_before_sending": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "EDIT_RESTRICTED"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Cannot add new recipients when allow_editing_before_sending is disabled. You can only update existing recipient information.",
+                  "allow_editing_before_sending": false,
+                  "code": "EDIT_RESTRICTED"
                 }
               }
             }
@@ -2085,7 +3554,7 @@
     "/signing-requests/{signing_request_id}/send": {
       "post": {
         "summary": "Send Signing Request",
-        "description": "Send signing request to all recipients via email.",
+        "description": "Send signing request to recipients via email with comprehensive validation. **Validation**: All signers must have `first_name`, `last_name`, and valid `email`. Any fields with `variable_name` (prefilled data) must have corresponding values in the recipient's data (e.g., `phone_number`, `city`, `company`). Returns detailed validation errors if any signer is missing required information.",
         "tags": [
           "Signing Requests"
         ],
@@ -2100,21 +3569,6 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "custom_message": {
-                    "type": "string",
-                    "maxLength": 1000
-                  }
-                }
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Signing request sent successfully",
@@ -2140,24 +3594,94 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
-                      "type": "string"
+                    "success": {
+                      "type": "boolean",
+                      "example": true
                     },
-                    "sent_at": {
+                    "message": {
                       "type": "string",
-                      "format": "date-time"
+                      "example": "Signing request sent successfully"
+                    },
+                    "sentTo": {
+                      "type": "string",
+                      "format": "email",
+                      "example": "john.doe@example.com"
+                    },
+                    "sentAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2025-10-03T15:30:00Z"
                     }
                   }
+                },
+                "example": {
+                  "success": true,
+                  "message": "Signing request sent successfully",
+                  "sentTo": "john.doe@example.com",
+                  "sentAt": "2025-10-03T15:30:00Z"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request",
+            "description": "Bad Request - Validation errors (one or more signers missing required information)",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "validation_errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "signer_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "signer_name": {
+                            "type": "string"
+                          },
+                          "signer_email": {
+                            "type": "string"
+                          },
+                          "missing_fields": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "error": "One or more signers are missing required information",
+                  "validation_errors": [
+                    {
+                      "signer_id": "550e8400-e29b-41d4-a716-446655440000",
+                      "signer_name": "John Doe",
+                      "signer_email": "john.doe@example.com",
+                      "missing_fields": [
+                        "phone_number",
+                        "city",
+                        "company"
+                      ]
+                    },
+                    {
+                      "signer_id": "650e8400-e29b-41d4-a716-446655440001",
+                      "signer_name": "Jane Smith",
+                      "signer_email": "jane.smith@example.com",
+                      "missing_fields": [
+                        "first_name",
+                        "email (invalid format)"
+                      ]
+                    }
+                  ]
                 }
               }
             }
@@ -2460,6 +3984,586 @@
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signing-requests/{signing_request_id}/reminders": {
+      "get": {
+        "summary": "List Signing Request Reminders",
+        "description": "Retrieve all reminders configured for a signing request. Reminders automatically send email notifications to recipients at specified intervals.",
+        "tags": [
+          "Signing Requests",
+          "Reminders"
+        ],
+        "parameters": [
+          {
+            "name": "signing_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reminders retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Reminder"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "results": [
+                    {
+                      "id": "750e8400-e29b-41d4-a716-446655440010",
+                      "hours": 48,
+                      "all_users": true,
+                      "recipient_id": null,
+                      "subject": "Action Required: Please sign {{signing_request_name}}",
+                      "message": "Hi {{signer_name}},\\n\\nYour signature is needed on {{signing_request_name}}.\\n\\nPlease complete at your earliest convenience.",
+                      "created_at": "2025-10-03T10:30:00Z",
+                      "updated_at": "2025-10-03T10:30:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Signing Request Reminder",
+        "description": "Add a reminder to a signing request. Reminders will be sent to recipients who have not yet completed their actions.",
+        "tags": [
+          "Signing Requests",
+          "Reminders"
+        ],
+        "parameters": [
+          {
+            "name": "signing_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReminder"
+              },
+              "example": {
+                "hours": 72,
+                "all_users": true,
+                "subject": "Urgent: {{signing_request_name}} expires in {{expiration_date}}",
+                "message": "Please complete your signature before expiration."
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reminder created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reminder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signing-requests/{signing_request_id}/reminders/{reminder_id}": {
+      "patch": {
+        "summary": "Update Signing Request Reminder",
+        "description": "Modify an existing signing request reminder configuration.",
+        "tags": [
+          "Signing Requests",
+          "Reminders"
+        ],
+        "parameters": [
+          {
+            "name": "signing_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "reminder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReminder"
+              },
+              "example": {
+                "hours": 120,
+                "message": "Updated reminder message"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reminder updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reminder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Signing Request Reminder",
+        "description": "Remove a reminder from a signing request.",
+        "tags": [
+          "Signing Requests",
+          "Reminders"
+        ],
+        "parameters": [
+          {
+            "name": "signing_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "reminder_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reminder deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signing-requests/{signing_request_id}/tracking": {
+      "get": {
+        "summary": "Get Signing Request Audit Trail",
+        "description": "Retrieve all tracking events and user actions for a signing request, including views, field interactions, and signatures.",
+        "tags": [
+          "Signing Requests",
+          "Tracking"
+        ],
+        "parameters": [
+          {
+            "name": "signing_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tracking data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TrackingEvent"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "results": [
+                    {
+                      "id": "950e8400-e29b-41d4-a716-446655440020",
+                      "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                      "field_id": null,
+                      "page": "document_view",
+                      "date_of_action": "2025-10-03",
+                      "time": "14:23:45",
+                      "browser": "Chrome 118.0.0",
+                      "user_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
+                      "details": {
+                        "action": "opened_document",
+                        "ip_address": "192.168.1.100"
+                      },
+                      "created_at": "2025-10-03T14:23:45Z"
+                    },
+                    {
+                      "id": "960e8400-e29b-41d4-a716-446655440021",
+                      "recipient_id": "650e8400-e29b-41d4-a716-446655440001",
+                      "field_id": "450e8400-e29b-41d4-a716-446655440005",
+                      "page": "signing_page",
+                      "date_of_action": "2025-10-03",
+                      "time": "14:25:12",
+                      "browser": "Chrome 118.0.0",
+                      "user_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)...",
+                      "details": {
+                        "action": "field_filled",
+                        "field_type": "signature",
+                        "ip_address": "192.168.1.100"
+                      },
+                      "created_at": "2025-10-03T14:25:12Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signing-requests/{signing_request_id}/certificate": {
+      "get": {
+        "summary": "Get Signing Certificate",
+        "description": "Retrieve the cryptographic certificate for a completed signing request. The certificate includes SHA-256 hash and completion metadata.",
+        "tags": [
+          "Signing Requests",
+          "Certificates"
+        ],
+        "parameters": [
+          {
+            "name": "signing_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Certificate retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Certificate"
+                },
+                "example": {
+                  "signing_request_id": "350e8400-e29b-41d4-a716-446655440003",
+                  "certificate_hash": "a3b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5f7a9b1c3d5e7f9a1b3c5d7e9f1a3b5",
+                  "generated_on": "2025-10-03T15:30:00Z",
+                  "finished_on": "2025-10-03T15:28:45Z",
+                  "signers": [
+                    {
+                      "name": "Alice Johnson",
+                      "email": "alice.johnson@acme.com",
+                      "signed_at": "2025-10-03T14:25:30Z",
+                      "ip_address": "192.168.1.100"
+                    },
+                    {
+                      "name": "Bob Williams",
+                      "email": "bob.williams@vendor.com",
+                      "signed_at": "2025-10-03T15:28:45Z",
+                      "ip_address": "192.168.1.105"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Certificate not generated yet",
             "content": {
               "application/json": {
                 "schema": {
@@ -3074,6 +5178,759 @@
           }
         }
       }
+    },
+    "/webhooks": {
+      "get": {
+        "summary": "List Webhooks",
+        "description": "Retrieve all configured webhooks for your company.",
+        "tags": [
+          "Webhooks"
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhooks retrieved successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Webhook"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Webhook",
+        "description": "Create a new webhook configuration. The URL must be HTTPS and respond to test events within 5 seconds. Your endpoint will receive a `X-Firma-Signature` header containing an HMAC SHA-256 signature that you must verify for security.\n\n**Signature Verification**: Use your webhook signing secret (available in company settings) to verify the `X-Firma-Signature` header. During secret rotation, verify against both `X-Firma-Signature` (new) and `X-Firma-Signature-Old` (previous secret, valid for 24 hours).\n\n**Request Headers Sent**:\n- `X-Firma-Event`: Event type (e.g., 'signing_request.completed')\n- `X-Firma-Signature`: HMAC SHA-256 signature of payload using current signing secret\n- `X-Firma-Signature-Old`: HMAC SHA-256 signature using previous secret (only during 24-hour rotation grace period)\n- `X-Firma-Delivery`: Unique delivery attempt ID\n- `User-Agent`: 'Firma-Webhooks/1.0'\n\n**Expected Response**:\n- Status: Any 2xx status code indicates success\n- Timeout: Endpoint must respond within 5 seconds\n- Body: Optional, max 1000 characters (logged for debugging)\n\n**Retry Behavior**:\n- Failed deliveries are retried 5 times with exponential backoff\n- Retry schedule: 1min, 5min, 30min, 2hr, 6hr\n- After 50 consecutive failures across all events, webhook is automatically disabled\n- Monitor `consecutive_failures` field and webhook event logs\n\n**Best Practices**:\n- Respond with 2xx immediately, process events asynchronously\n- Verify signatures to prevent spoofing\n- Handle duplicate events idempotently using `event_id`\n- Store `event_id` to detect and ignore duplicates\n- Monitor `consecutive_failures` and fix issues promptly",
+        "tags": [
+          "Webhooks"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhook"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook created successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Validation failed",
+                  "code": "VALIDATION_ERROR",
+                  "details": {
+                    "url": [
+                      "URL is required",
+                      "URL must be HTTPS",
+                      "URL must be valid"
+                    ],
+                    "events": [
+                      "At least one event type is required"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/{webhook_id}": {
+      "patch": {
+        "summary": "Update Webhook",
+        "description": "Update webhook configuration. You can enable/disable webhooks, change the URL, or modify subscribed events.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhook"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook updated successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Webhook does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Webhook",
+        "description": "Soft delete a webhook by setting the deleted flag. No further events will be sent to this webhook.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook deleted successfully (soft delete)",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/{webhook_id}/test": {
+      "post": {
+        "summary": "Test Webhook",
+        "description": "Send a test event to the webhook URL to verify configuration. The test event uses event type 'test.event' and contains sample data.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test event sent successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "response_status": {
+                      "type": "integer",
+                      "description": "HTTP status code from webhook endpoint"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Webhook does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhook-events": {
+      "get": {
+        "summary": "List Webhook Events",
+        "description": "Retrieve webhook delivery logs with filtering and pagination. Use this to monitor delivery status, debug failures, and track event history.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "webhook_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filter by specific webhook ID"
+          },
+          {
+            "name": "event_type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "signing_request.created",
+                "signing_request.sent",
+                "signing_request.viewed",
+                "signing_request.completed",
+                "signing_request.cancelled",
+                "signing_request.expired",
+                "recipient.viewed",
+                "recipient.signed",
+                "recipient.declined",
+                "template.created",
+                "template.updated",
+                "template.deleted",
+                "company.updated",
+                "workspace.created",
+                "workspace.updated"
+              ]
+            },
+            "description": "Filter by event type"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "success",
+                "failed"
+              ]
+            },
+            "description": "Filter by delivery status"
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Filter events created after this timestamp (ISO 8601)"
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "description": "Filter events created before this timestamp (ISO 8601)"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook events retrieved successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookEvent"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/PaginationInfo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhook-events/{event_id}/retry": {
+      "post": {
+        "summary": "Retry Webhook Event",
+        "description": "Manually retry a failed webhook event delivery. This will immediately attempt to deliver the event again, bypassing the normal retry schedule.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retry initiated successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Event cannot be retried",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Event does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -3096,6 +5953,22 @@
     {
       "name": "Company",
       "description": "Company-level settings, account management, and branding"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhook configuration and event delivery management with HMAC signature verification, automatic retries, and comprehensive delivery logs"
+    },
+    {
+      "name": "Reminders",
+      "description": "Automated email reminder configuration for templates and signing requests"
+    },
+    {
+      "name": "Tracking",
+      "description": "Audit trail and user activity tracking for signing requests"
+    },
+    {
+      "name": "Certificates",
+      "description": "Cryptographic certificates for completed signing requests"
     }
   ]
 }

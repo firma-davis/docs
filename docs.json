@@ -40,7 +40,11 @@
                   "api-reference/templates/update-template-save-all",
                   "api-reference/templates/delete-template",
                   "api-reference/templates/create-signing-request-from-template",
-                  "api-reference/templates/generate-embedded-template-token"
+                  "api-reference/templates/generate-embedded-template-token",
+                  "api-reference/templates/list-template-reminders",
+                  "api-reference/templates/create-template-reminder",
+                  "api-reference/templates/update-template-reminder",
+                  "api-reference/templates/delete-template-reminder"
                 ]
               },
               {
@@ -60,7 +64,13 @@
                   "api-reference/signing-requests/send-signing-request",
                   "api-reference/signing-requests/cancel-signing-request",
                   "api-reference/signing-requests/send-reminder",
-                  "api-reference/signing-requests/download-completed-document"
+                  "api-reference/signing-requests/download-completed-document",
+                  "api-reference/signing-requests/get-signing-request-audit-trail",
+                  "api-reference/signing-requests/get-signing-certificate",
+                  "api-reference/signing-requests/list-signing-request-reminders",
+                  "api-reference/signing-requests/create-signing-request-reminder",
+                  "api-reference/signing-requests/update-signing-request-reminder",
+                  "api-reference/signing-requests/delete-signing-request-reminder"
                 ]
               },
               {
@@ -77,6 +87,18 @@
                 "pages": [
                   "api-reference/company/get-company-details",
                   "api-reference/company/update-company-details"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "pages": [
+                  "api-reference/webhooks/list-webhooks",
+                  "api-reference/webhooks/create-webhook",
+                  "api-reference/webhooks/update-webhook",
+                  "api-reference/webhooks/delete-webhook",
+                  "api-reference/webhooks/test-webhook",
+                  "api-reference/webhook-events/list-webhook-events",
+                  "api-reference/webhook-events/retry-webhook-event"
                 ]
               }
             ]
