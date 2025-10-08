@@ -11,18 +11,8 @@
   },
   "servers": [
     {
-      "url": "https://ielmshcswdhuacyjlpiy.supabase.co/functions/v1/signing-request-api",
+      "url": "https://api.firma.dev/v1",
       "description": "Production server"
-    },
-    {
-      "url": "https://{partner_api_base}/v1",
-      "description": "Custom partner domain",
-      "variables": {
-        "partner_api_base": {
-          "default": "api.partner.com",
-          "description": "Partner's custom API domain"
-        }
-      }
     }
   ],
   "security": [
