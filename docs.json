@@ -17,8 +17,9 @@
             "group": "Starter guides",
             "pages": [
               "guides/creating-workspaces",
-              "guides/embeddable-template-editor",
+              "guides/workspace-settings",
               "guides/sending-signing-request",
+              "guides/embeddable-template-editor",
               "guides/embeddable-signing",
               "guides/webhooks"
             ]
@@ -32,26 +33,25 @@
             "group": "Endpoints",
             "pages": [
               {
+                "group": "Workspaces",
+                "pages": [
+                  "api-reference/workspaces/list-workspaces",
+                  "api-reference/workspaces/create-a-new-workspace",
+                  "api-reference/workspaces/update-a-workspace"
+                ]
+              },
+              {
                 "group": "Templates",
                 "pages": [
                   "api-reference/templates/list-templates",
                   "api-reference/templates/create-template",
                   "api-reference/templates/get-template",
-                  "api-reference/templates/update-template-save-all",
-                  "api-reference/templates/delete-template",
-                  "api-reference/templates/create-signing-request-from-template",
-                  "api-reference/templates/generate-embedded-template-token",
-                  "api-reference/templates/list-template-reminders",
-                  "api-reference/templates/create-template-reminder",
-                  "api-reference/templates/update-template-reminder",
-                  "api-reference/templates/delete-template-reminder"
-                ]
-              },
-              {
-                "group": "Embedded Templates",
-                "pages": [
-                  "api-reference/embedded-templates/get-embedded-template",
-                  "api-reference/embedded-templates/update-embedded-template"
+                  "api-reference/templates/comprehensive-template-update",
+                  "api-reference/templates/partially-update-template",
+                  "api-reference/templates/delete-a-template",
+                  "api-reference/templates/get-template-fields",
+                  "api-reference/templates/get-template-users",
+                  "api-reference/templates/get-template-reminders"
                 ]
               },
               {
@@ -61,32 +61,19 @@
                   "api-reference/signing-requests/create-signing-request",
                   "api-reference/signing-requests/get-signing-request",
                   "api-reference/signing-requests/update-signing-request",
+                  "api-reference/signing-requests/comprehensive-update-signing-request",
+                  "api-reference/signing-requests/partially-update-signing-request",
                   "api-reference/signing-requests/send-signing-request",
-                  "api-reference/signing-requests/cancel-signing-request",
-                  "api-reference/signing-requests/send-reminder",
-                  "api-reference/signing-requests/download-completed-document",
-                  "api-reference/signing-requests/get-signing-request-audit-trail",
-                  "api-reference/signing-requests/get-signing-certificate",
-                  "api-reference/signing-requests/list-signing-request-reminders",
-                  "api-reference/signing-requests/create-signing-request-reminder",
-                  "api-reference/signing-requests/update-signing-request-reminder",
-                  "api-reference/signing-requests/delete-signing-request-reminder"
-                ]
-              },
-              {
-                "group": "Workspaces",
-                "pages": [
-                  "api-reference/workspaces/list-workspaces",
-                  "api-reference/workspaces/create-workspace",
-                  "api-reference/workspaces/get-workspace",
-                  "api-reference/workspaces/update-workspace"
+                  "api-reference/signing-requests/get-signing-request-fields",
+                  "api-reference/signing-requests/get-signing-request-users",
+                  "api-reference/signing-requests/get-signing-request-reminders"
                 ]
               },
               {
                 "group": "Company",
                 "pages": [
-                  "api-reference/company/get-company-details",
-                  "api-reference/company/update-company-details"
+                  "api-reference/company/get-company-information",
+                  "api-reference/company/update-company-information"
                 ]
               },
               {
@@ -94,11 +81,31 @@
                 "pages": [
                   "api-reference/webhooks/list-webhooks",
                   "api-reference/webhooks/create-webhook",
+                  "api-reference/webhooks/get-webhook",
                   "api-reference/webhooks/update-webhook",
-                  "api-reference/webhooks/delete-webhook",
-                  "api-reference/webhooks/test-webhook",
-                  "api-reference/webhook-events/list-webhook-events",
-                  "api-reference/webhook-events/retry-webhook-event"
+                  "api-reference/webhooks/delete-a-webhook",
+                  "api-reference/webhooks/test-a-webhook"
+                ]
+              },
+              {
+                "group": "JWT Management",
+                "pages": [
+                  "api-reference/jwt-management/generate-jwt-token",
+                  "api-reference/jwt-management/revoke-a-jwt-token"
+                ]
+              },
+              {
+                "group": "Workspace Settings",
+                "pages": [
+                  "api-reference/workspace-settings/get-workspace-settings",
+                  "api-reference/workspace-settings/update-workspace-settings"
+                ]
+              },
+              {
+                "group": "Legacy",
+                "pages": [
+                  "api-reference/legacy/list-documents-legacy",
+                  "api-reference/legacy/create-document-legacy"
                 ]
               }
             ]

@@ -1,114 +1,392 @@
 ---
 title: "Embeddable template editor"
-description: "How to embed and configure the template editor in your product."
+description: "Embed the template editor in your product with secure JWT authentication."
 icon: "file-pen"
 ---
 
-You can embed Firma's template editor inside your application using an iframe or a dedicated SDK. The editor URL pattern is:
+# Embeddable template editor
 
-> `https://app.firma.dev/templateEditor/{template_id}`
+Embed Firma's template editor inside your application using JWT authentication for secure, time-limited access. This is ideal for white-label integrations and multi-tenant applications.
 
-## Embed via iframe
+## Use cases
 
-A minimal iframe embed looks like this:
+- **White-label template editing**: Let users edit templates under your brand
+- **Multi-tenant applications**: Secure per-user template access without exposing API keys
+- **Embedded workflows**: Seamless template creation within your product
+- **Time-limited access**: Tokens expire automatically for security
 
-```html
-<iframe src="https://app.firma.dev/templateEditor/{template_id}" style="width:100%;height:800px;border:0;" allow="clipboard-write"></iframe>
+## How it works
+
+1. Your server requests a JWT token from Firma's API using your API key
+2. Firma returns a short-lived JWT token with the template ID
+3. Your frontend embeds the editor with the JWT token
+4. The token expires automatically (configurable expiration)
+5. Revoke tokens early if needed (e.g., user logs out)
+
+<Note>
+**Rate limit**: JWT endpoints support **120 requests per minute** for high-volume applications.
+</Note>
+
+---
+
+## JWT Authentication
+
+### Generate JWT token
+
+Generate a JWT token for a specific template using the `/jwt/generate` endpoint.
+
+**Endpoint**: `POST /jwt/generate`
+
+**Request body**:
+```json
+{
+  "companies_workspaces_templates_id": "123e4567-e89b-12d3-a456-426614174000"
+}
 ```
 
-## Recommended integration points
+**Response (200 OK)**:
+```json
+{
+  "jwt": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "jwt_id": "jwt123-e89b-12d3-a456-426614174000",
+  "expires_at": "2024-04-20T10:00:00Z",
+  "template_id": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
 
-- Pass the current user's workspace or auth token so the editor loads the correct templates.
-- Listen for postMessage events from the editor to react to saves, publish, or close events.
+**Rate limit headers**:
+```
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 119
+X-RateLimit-Reset: 1729180800
+```
 
-## Recommended integration (secure, production-ready)
+### Revoke JWT token
 
-Use a small server-side endpoint to request an embedded JWT token from the Firma API and return a short-lived embed URL to your frontend. The OpenAPI for this repo exposes:
+Revoke a JWT token before its expiration time. Useful when:
+- User logs out
+- User permissions change
+- Suspicious activity detected
+- Session ends unexpectedly
 
-- POST /templates/template_id/embed-token — returns  token, expires_at, embed_url
+**Endpoint**: `POST /jwt/revoke`
 
-Server responsibilities:
+**Request body**:
+```json
+{
+  "jwt_id": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
 
-- Use your server API key (never expose it to the browser).
-- Request an embed token scoped to the template and an expiry (short-lived, e.g. 1 hour).
-- Return only the embed_url (or token) to the authenticated frontend user.
+**Response (200 OK)**:
+```json
+{
+  "message": "JWT revoked successfully",
+  "jwt_id": "123e4567-e89b-12d3-a456-426614174000",
+  "revoked_at": "2024-03-20T16:45:00Z"
+}
+```
 
-### Server example — Node (Express, server-side)
+---
+
+## Implementation guide
+
+<Warning>
+**Security**: Never expose your API key in client-side code. Always generate JWT tokens from your secure backend.
+</Warning>
+
+### Server implementation — Node.js (Express)
 
 ```js
-// server.js (Node)
 import express from 'express'
 import fetch from 'node-fetch'
 
 const app = express()
-const FIRMA_API_BASE = process.env.FIRMA_API_BASE || 'https://api.firma.dev/v1'
+app.use(express.json())
+
+const FIRMA_API_BASE = process.env.FIRMA_API_BASE || 'https://api.firma.dev/functions/v1/signing-request-api'
 const API_KEY = process.env.FIRMA_API_KEY
 
-app.get('/internal/embed/template/:templateId', async (req, res) => {
-	const { templateId } = req.params
-	const resp = await fetch(`${FIRMA_API_BASE}/templates/${templateId}/embed-token`, {
-		method: 'POST',
-		headers: {
-			'Authorization': `Bearer ${API_KEY}`,
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({ expiration_hours: 2 })
-	})
-	if (!resp.ok) return res.status(resp.status).send(await resp.text())
-	const body = await resp.json()
-	// body: { token, expires_at, embed_url }
-	res.json({ embed_url: body.embed_url, expires_at: body.expires_at })
+// Protected endpoint - verify user authentication first
+app.post('/api/embed/template/:templateId/token', async (req, res) => {
+  // 1. Verify user is authenticated (your auth logic)
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  
+  // 2. Verify user has access to this template (your authorization logic)
+  const { templateId } = req.params
+  const hasAccess = await checkUserTemplateAccess(req.user.id, templateId)
+  if (!hasAccess) {
+    return res.status(403).json({ error: 'Forbidden' })
+  }
+  
+  // 3. Generate JWT token from Firma
+  try {
+    const response = await fetch(`${FIRMA_API_BASE}/jwt/generate`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        companies_workspaces_templates_id: templateId
+      })
+    })
+    
+    if (!response.ok) {
+      const error = await response.text()
+      return res.status(response.status).json({ error })
+    }
+    
+    const data = await response.json()
+    
+    // 4. Store jwt_id for potential revocation
+    await storeJwtForUser(req.user.id, data.jwt_id, data.expires_at)
+    
+    // 5. Return token to frontend
+    res.json({
+      jwt: data.jwt,
+      expires_at: data.expires_at
+    })
+  } catch (error) {
+    console.error('Failed to generate JWT:', error)
+    res.status(500).json({ error: 'Failed to generate token' })
+  }
+})
+
+// Revoke token on logout
+app.post('/api/embed/revoke', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  
+  const { jwt_id } = req.body
+  
+  try {
+    const response = await fetch(`${FIRMA_API_BASE}/jwt/revoke`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ jwt_id })
+    })
+    
+    if (!response.ok) {
+      const error = await response.text()
+      return res.status(response.status).json({ error })
+    }
+    
+    const data = await response.json()
+    res.json(data)
+  } catch (error) {
+    console.error('Failed to revoke JWT:', error)
+    res.status(500).json({ error: 'Failed to revoke token' })
+  }
 })
 
 app.listen(3000)
 ```
 
-### Server example — Python (Flask, server-side)
+### Server implementation — Python (Flask)
 
 ```py
-# server.py
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 import os
 import requests
+from functools import wraps
 
 app = Flask(__name__)
-FIRMA_API_BASE = os.getenv('FIRMA_API_BASE', 'https://api.firma.dev/v1')
+
+FIRMA_API_BASE = os.getenv('FIRMA_API_BASE', 'https://api.firma.dev/functions/v1/signing-request-api')
 API_KEY = os.getenv('FIRMA_API_KEY')
 
-@app.route('/internal/embed/template/<template_id>')
-def embed_token(template_id):
-		url = f"{FIRMA_API_BASE}/templates/{template_id}/embed-token"
-		resp = requests.post(url, headers={
-				'Authorization': f'Bearer {API_KEY}',
-				'Content-Type': 'application/json'
-		}, json={ 'expiration_hours': 2 })
-		resp.raise_for_status()
-		return jsonify(resp.json())
+def require_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        # Your authentication logic here
+        user = get_current_user(request)
+        if not user:
+            return jsonify({'error': 'Unauthorized'}), 401
+        return f(user, *args, **kwargs)
+    return decorated
+
+@app.route('/api/embed/template/<template_id>/token', methods=['POST'])
+@require_auth
+def generate_jwt(user, template_id):
+    # Verify user has access to this template
+    if not check_user_template_access(user.id, template_id):
+        return jsonify({'error': 'Forbidden'}), 403
+    
+    # Generate JWT from Firma
+    try:
+        response = requests.post(
+            f'{FIRMA_API_BASE}/jwt/generate',
+            headers={
+                'Authorization': f'Bearer {API_KEY}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'companies_workspaces_templates_id': template_id
+            }
+        )
+        response.raise_for_status()
+        data = response.json()
+        
+        # Store jwt_id for potential revocation
+        store_jwt_for_user(user.id, data['jwt_id'], data['expires_at'])
+        
+        return jsonify({
+            'jwt': data['jwt'],
+            'expires_at': data['expires_at']
+        })
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': 'Failed to generate token'}), 500
+
+@app.route('/api/embed/revoke', methods=['POST'])
+@require_auth
+def revoke_jwt(user):
+    jwt_id = request.json.get('jwt_id')
+    
+    try:
+        response = requests.post(
+            f'{FIRMA_API_BASE}/jwt/revoke',
+            headers={
+                'Authorization': f'Bearer {API_KEY}',
+                'Content-Type': 'application/json'
+            },
+            json={'jwt_id': jwt_id}
+        )
+        response.raise_for_status()
+        return jsonify(response.json())
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': 'Failed to revoke token'}), 500
 
 if __name__ == '__main__':
-		app.run(port=3000)
+    app.run(port=3000)
 ```
 
-### Client usage (browser)
+### Frontend implementation — React
 
-Call your server endpoint to get the `embed_url` and render an iframe. The `embed_url` returned by the API is safe to place into an iframe because the token is short-lived and signed.
+```jsx
+import { useState, useEffect } from 'react'
+
+function TemplateEditor({ templateId }) {
+  const [embedUrl, setEmbedUrl] = useState(null)
+  const [jwtId, setJwtId] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  
+  useEffect(() => {
+    async function loadEditor() {
+      try {
+        // Request JWT token from your server
+        const response = await fetch(`/api/embed/template/${templateId}/token`, {
+          method: 'POST',
+          credentials: 'include' // Include auth cookies
+        })
+        
+        if (!response.ok) {
+          throw new Error('Failed to generate embed token')
+        }
+        
+        const { jwt, expires_at } = await response.json()
+        
+        // Build embed URL with JWT token
+        const url = `https://app.firma.dev/templateEditor/${templateId}?jwt=${jwt}`
+        setEmbedUrl(url)
+        setJwtId(jwt)
+        setLoading(false)
+        
+        // Optional: Auto-refresh token before expiration
+        const expiresIn = new Date(expires_at).getTime() - Date.now()
+        const refreshTimeout = setTimeout(() => {
+          loadEditor() // Refresh token
+        }, expiresIn - 60000) // Refresh 1 minute before expiration
+        
+        return () => clearTimeout(refreshTimeout)
+      } catch (err) {
+        setError(err.message)
+        setLoading(false)
+      }
+    }
+    
+    loadEditor()
+    
+    // Cleanup: Revoke token when component unmounts
+    return () => {
+      if (jwtId) {
+        fetch('/api/embed/revoke', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ jwt_id: jwtId })
+        }).catch(console.error)
+      }
+    }
+  }, [templateId])
+  
+  if (loading) return <div>Loading editor...</div>
+  if (error) return <div>Error: {error}</div>
+  
+  return (
+    <iframe
+      src={embedUrl}
+      style={{ width: '100%', height: '800px', border: 0 }}
+      allow="clipboard-write"
+      title="Template Editor"
+    />
+  )
+}
+```
+
+### Frontend implementation — Vanilla JavaScript
 
 ```js
-async function loadEditor(templateId) {
-	const r = await fetch(`/internal/embed/template/${templateId}`)
-	const { embed_url } = await r.json()
-	const iframe = document.createElement('iframe')
-	iframe.src = embed_url
-	iframe.style.width = '100%'
-	iframe.style.height = '800px'
-	iframe.frameBorder = '0'
-	document.getElementById('editor-root').appendChild(iframe)
+async function loadTemplateEditor(templateId, containerId) {
+  try {
+    // Request JWT token from your server
+    const response = await fetch(`/api/embed/template/${templateId}/token`, {
+      method: 'POST',
+      credentials: 'include'
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to generate embed token')
+    }
+    
+    const { jwt, expires_at } = await response.json()
+    
+    // Create iframe with JWT token
+    const iframe = document.createElement('iframe')
+    iframe.src = `https://app.firma.dev/templateEditor/${templateId}?jwt=${jwt}`
+    iframe.style.width = '100%'
+    iframe.style.height = '800px'
+    iframe.style.border = '0'
+    iframe.allow = 'clipboard-write'
+    
+    const container = document.getElementById(containerId)
+    container.appendChild(iframe)
+    
+    return { iframe, jwt_id: jwt, expires_at }
+  } catch (error) {
+    console.error('Failed to load template editor:', error)
+    throw error
+  }
 }
+
+// Usage
+loadTemplateEditor('123e4567-e89b-12d3-a456-426614174000', 'editor-container')
 ```
 
 ## postMessage events (editor → host)
 
 Firma's editor will emit postMessage events for important lifecycle actions. Below is a recommended, minimal event schema you can implement for reacting to editor saves and publishes. If you have a canonical schema in your platform, replace these with your official event names.
+
+<Tip>
+Use these events to track editor activity without making additional API calls, helping you stay within rate limits.
+</Tip>
 
 Event envelope (window.postMessage payload):
 
@@ -162,6 +440,305 @@ iframe.addEventListener('load', () => {
 })
 ```
 
-## Security considerations
+---
 
-- Never expose your main API key in the browser. Use a server endpoint to mint embed tokens (see server examples)
+## Updating templates
+
+After users edit templates in the embedded editor, you'll need to save their changes. The API provides two methods:
+
+### Full update (PUT)
+
+Use [`comprehensive-template-update`](../api-reference/templates/comprehensive-template-update) when replacing the entire template resource.
+
+**When to use**:
+- Making major changes to the template
+- Replacing all template properties
+- Ensuring complete data consistency
+
+**Requirements**:
+- ✅ Must send all required fields
+- ✅ Replaces the complete template
+- ✅ Any fields not sent will be removed/reset
+
+**Example** (Node.js):
+```javascript
+const response = await fetch(`https://api.firma.dev/functions/v1/signing-request-api/templates/${templateId}`, {
+  method: 'PUT',
+  headers: {
+    'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'Updated Contract Template',
+    workspace_id: 'ws_123',
+    // Include ALL other required fields
+    settings: {
+      // All settings must be included
+    }
+  })
+});
+
+const updatedTemplate = await response.json();
+```
+
+### Partial update (PATCH)
+
+Use [`partially-update-template`](../api-reference/templates/partially-update-template) when updating specific fields only.
+
+**When to use**:
+- Updating only the template name
+- Changing specific settings
+- Making targeted changes without affecting other properties
+
+**Benefits**:
+- ✅ Only send the fields you want to change
+- ✅ More efficient for small changes
+- ✅ Other fields remain unchanged
+- ✅ Safer for concurrent edits
+
+**Example** (Node.js):
+```javascript
+// Update only the template name
+const response = await fetch(`https://api.firma.dev/functions/v1/signing-request-api/templates/${templateId}`, {
+  method: 'PATCH',
+  headers: {
+    'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'New Template Name'
+  })
+});
+
+const updatedTemplate = await response.json();
+```
+
+**Example** (Python):
+```python
+import requests
+import os
+
+response = requests.patch(
+    f"https://api.firma.dev/functions/v1/signing-request-api/templates/{template_id}",
+    headers={
+        "Authorization": f"Bearer {os.getenv('FIRMA_API_KEY')}",
+        "Content-Type": "application/json"
+    },
+    json={
+        "name": "New Template Name",
+        "settings": {
+            "require_signature": True
+        }
+    }
+)
+
+updated_template = response.json()
+```
+
+### Choosing between PUT and PATCH
+
+| Scenario | Use | Reason |
+|----------|-----|--------|
+| Saving all editor changes | PUT | Complete replacement ensures consistency |
+| Updating template name only | PATCH | More efficient, safer |
+| Changing specific settings | PATCH | Only affects targeted fields |
+| Migrating template structure | PUT | Complete control over final state |
+| User edits single field | PATCH | Preserves other properties |
+| Bulk property updates | PUT | Clean slate approach |
+
+### Rate limiting
+
+Both endpoints share the same rate limit:
+- **100 requests/minute** per API key
+
+**Best practices**:
+- Debounce auto-save (e.g., save 2 seconds after last edit)
+- Show save status to users
+- Implement retry logic with exponential backoff
+- Cache template state to minimize API calls
+
+### Error handling
+
+```javascript
+async function updateTemplate(templateId, changes) {
+  try {
+    const response = await fetch(`https://api.firma.dev/functions/v1/signing-request-api/templates/${templateId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(changes)
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Template not found');
+      }
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded - please try again in a moment');
+      }
+      throw new Error(`Update failed: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to update template:', error);
+    throw error;
+  }
+}
+```
+
+---
+
+## Token lifecycle management
+
+### Automatic expiration
+
+JWT tokens expire automatically based on the `expires_at` timestamp. After expiration:
+- The embedded editor will reject the token
+- Users must request a new token to continue
+- No API call needed — tokens expire passively
+
+### Manual revocation
+
+Revoke tokens explicitly in these scenarios:
+1. **User logout**: Revoke all active tokens for the user
+2. **Permission changes**: User loses access to the template
+3. **Security concerns**: Suspicious activity detected
+4. **Session timeout**: User session expires in your app
+
+### Refresh strategy
+
+Implement token refresh before expiration:
+
+```js
+// Calculate time until expiration
+const expiresAt = new Date(tokenData.expires_at)
+const expiresIn = expiresAt.getTime() - Date.now()
+
+// Refresh 5 minutes before expiration
+const refreshBuffer = 5 * 60 * 1000
+const refreshTimeout = expiresIn - refreshBuffer
+
+setTimeout(async () => {
+  // Request new token
+  const newToken = await generateNewToken(templateId)
+  // Update iframe with new token
+  updateIframeToken(newToken)
+}, refreshTimeout)
+```
+
+---
+
+## Rate limiting
+
+JWT endpoints support **120 requests per minute** per API key.
+
+**Rate limit headers**:
+```
+X-RateLimit-Limit: 120
+X-RateLimit-Remaining: 115
+X-RateLimit-Reset: 1729180800
+```
+
+If you exceed the rate limit (429 response):
+- Cache tokens and reuse them until expiration
+- Implement exponential backoff for retries
+- Monitor `X-RateLimit-Remaining` header
+- Generate tokens on-demand, not preemptively
+
+---
+
+## Security best practices
+
+<Warning>
+**Never expose your API key in client-side code.** Always generate JWT tokens from a secure server endpoint.
+</Warning>
+
+### ✅ Do's
+
+- ✅ Generate tokens from your backend server
+- ✅ Validate user authentication before generating tokens
+- ✅ Verify user has access to the requested template
+- ✅ Store `jwt_id` for revocation capabilities
+- ✅ Set reasonable token expiration times (1-4 hours)
+- ✅ Revoke tokens when users log out
+- ✅ Monitor rate limits (120 requests/minute)
+- ✅ Implement error handling for expired tokens
+- ✅ Use HTTPS for all API requests
+
+### ❌ Don'ts
+
+- ❌ Don't expose API keys in frontend code
+- ❌ Don't generate tokens without authentication
+- ❌ Don't skip authorization checks
+- ❌ Don't create tokens with indefinite expiration
+- ❌ Don't reuse tokens across users
+- ❌ Don't log JWT tokens (security risk)
+- ❌ Don't share tokens between different templates
+
+---
+
+## Troubleshooting
+
+### Token expired error
+
+**Symptom**: Editor shows "Token expired" or authentication error
+
+**Solution**: 
+- Implement token refresh before expiration
+- Generate a new token and reload the iframe
+- Check system clock synchronization
+
+### 401 Unauthorized
+
+**Symptom**: JWT generation fails with 401
+
+**Possible causes**:
+- Invalid or missing API key
+- API key doesn't have required permissions
+- API key is disabled
+
+**Solution**: Verify API key in dashboard and check permissions
+
+### 404 Not Found
+
+**Symptom**: Template not found when generating JWT
+
+**Possible causes**:
+- Template ID doesn't exist
+- Template belongs to different workspace
+- Template was deleted
+
+**Solution**: Verify template ID and workspace access
+
+### 400 Bad Request (JWT already revoked)
+
+**Symptom**: Revocation fails with "already revoked"
+
+**Possible causes**:
+- Token was already revoked
+- Token already expired naturally
+- JWT ID is invalid
+
+**Solution**: This is usually safe to ignore — token is already invalid
+
+### Rate limit exceeded
+
+**Symptom**: 429 Too Many Requests
+
+**Solution**:
+- Implement token caching
+- Increase token expiration time
+- Wait for rate limit reset (check `X-RateLimit-Reset` header)
+- Implement retry logic with backoff
+
+---
+
+## Next steps
+
+- [Embed signing interface](embeddable-signing) for white-label signing (100 req/min)
+- [Send signing requests](sending-signing-request) with custom templates (100 req/min)
+- [Set up webhooks](webhooks) to track template events (60 req/min)
+- [Configure workspace settings](workspace-settings) for multi-tenant apps (100-200 req/min)

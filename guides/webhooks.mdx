@@ -43,7 +43,7 @@ Firma sends the following event types:
 Create webhooks via the API or dashboard:
 
 ```bash
-curl -X POST "https://api.firma.dev/v1/webhooks" \
+curl -X POST "https://api.firma.dev/functions/v1/signing-request-api/webhooks" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -57,6 +57,8 @@ curl -X POST "https://api.firma.dev/v1/webhooks" \
 ```
 
 <Note>
+**Rate limit**: Webhook endpoints support **60 requests per minute**.
+
 Your webhook URL must use HTTPS and respond within 5 seconds. Firma will send a test event during creation to verify the endpoint.
 </Note>
 
@@ -276,19 +278,11 @@ async function processWebhookEvent(event) {
 
 ## Monitoring webhook health
 
-Monitor your webhook's health using the API:
-
-```bash
-# List recent webhook events
-curl "https://api.firma.dev/v1/webhook-events?webhook_id=wh_123&status=failed" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-Check the webhook's `consecutive_failures` field:
+Monitor your webhook's health by checking the webhook details:
 
 ```bash
 # Get webhook details
-curl "https://api.firma.dev/v1/webhooks/wh_123" \
+curl "https://api.firma.dev/functions/v1/signing-request-api/webhooks/{id}" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -296,6 +290,11 @@ Response includes:
 - `consecutive_failures` - Number of consecutive failed deliveries
 - `last_failure_at` - Timestamp of most recent failure
 - `enabled` - Whether webhook is active (auto-disabled after 50 failures)
+- `last_success_at` - Timestamp of most recent successful delivery
+
+<Note>
+**Rate limit**: GET webhook requests support **60 requests per minute**.
+</Note>
 
 ## Troubleshooting
 
@@ -331,15 +330,6 @@ ngrok http 3000
 # https://abc123.ngrok.io/webhooks/firma
 ```
 
-### Manual retry
-
-Retry individual failed events via API:
-
-```bash
-curl -X POST "https://api.firma.dev/v1/webhook-events/evt_123/retry" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
 ## Production checklist
 
 - [ ] Verify HMAC signatures on all webhook requests
@@ -348,13 +338,14 @@ curl -X POST "https://api.firma.dev/v1/webhook-events/evt_123/retry" \
 - [ ] Process events asynchronously (queues/background jobs)
 - [ ] Implement idempotency using `event_id`
 - [ ] Store signing secret securely (env var or secrets manager)
-- [ ] Monitor `consecutive_failures` metric
+- [ ] Monitor `consecutive_failures` metric via GET webhook endpoint
 - [ ] Set up alerts for webhook failures
 - [ ] Log all webhook events for debugging
 - [ ] Test with all subscribed event types
+- [ ] Stay within rate limits (60 requests/minute)
 
 ## Next steps
 
 - [Create a webhook](../api-reference/webhooks/create-webhook) via API
-- [List webhook events](../api-reference/webhook-events/list-webhook-events) for debugging
-- [Test your webhook](../api-reference/webhooks/test-webhook) before going live
+- [Test your webhook](../api-reference/webhooks/test-a-webhook) before going live
+- [Update webhook settings](../api-reference/webhooks/update-webhook) as needed
