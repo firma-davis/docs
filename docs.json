@@ -49,6 +49,7 @@
                   "api-reference/templates/comprehensive-template-update",
                   "api-reference/templates/partially-update-template",
                   "api-reference/templates/delete-a-template",
+                  "api-reference/templates/duplicate-template-into-signing-request",
                   "api-reference/templates/get-template-fields",
                   "api-reference/templates/get-template-users",
                   "api-reference/templates/get-template-reminders"
@@ -60,9 +61,11 @@
                   "api-reference/signing-requests/list-signing-requests",
                   "api-reference/signing-requests/create-signing-request",
                   "api-reference/signing-requests/get-signing-request",
-                  "api-reference/signing-requests/update-signing-request",
+                  "api-reference/signing-requests/comprehensive-update-signing-request",
                   "api-reference/signing-requests/partially-update-signing-request",
+                  "api-reference/signing-requests/cancel-a-signing-request",
                   "api-reference/signing-requests/send-signing-request",
+                  "api-reference/signing-requests/resend-signing-request-to-specific-recipients",
                   "api-reference/signing-requests/get-signing-request-fields",
                   "api-reference/signing-requests/get-signing-request-users",
                   "api-reference/signing-requests/get-signing-request-reminders"
@@ -83,7 +86,9 @@
                   "api-reference/webhooks/get-webhook",
                   "api-reference/webhooks/update-webhook",
                   "api-reference/webhooks/delete-a-webhook",
-                  "api-reference/webhooks/test-a-webhook"
+                  "api-reference/webhooks/test-a-webhook",
+                  "api-reference/webhooks/get-webhook-secret-rotation-status",
+                  "api-reference/webhooks/rotate-webhook-signing-secret"
                 ]
               },
               {

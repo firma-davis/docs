@@ -3,7 +3,7 @@
   "info": {
     "title": "Firma Partner API",
     "description": "RESTful API for document signing and template management.\n\n**Authentication**: All endpoints require API key authentication via the `Authorization` header. Use your API key directly without any prefix (e.g., `your-api-key`). The Bearer prefix is optional but not required.\n\n**Security Features**:\n- Input validation using Zod schemas with detailed field-level error messages\n- RSA-256 signed JWT tokens for embedded template access\n\n**Rate Limiting**: Rate limits are tiered based on operation type:\n- Read operations (GET): 200 requests per minute\n- Write operations (POST/PUT standard): 100 requests per minute\n- Webhook operations: 60 requests per minute\n- JWT generation: 120 requests per minute\n- Template duplication: 30 requests per minute\n- Signing request send: 60 requests per minute\n- Webhook secret rotation: 1 per hour (cooldown enforced)\n\nWhen rate limits are exceeded, the API returns a `429 Too Many Requests` response with headers:\n- `X-RateLimit-Limit`: Maximum requests per minute for this endpoint\n- `X-RateLimit-Remaining`: Requests remaining in current window\n- `X-RateLimit-Reset`: Unix timestamp when limit resets\n- `Retry-After`: Seconds until retry is allowed\n\n**Error Handling**: All errors return structured JSON responses with `error` (human-readable message), `code` (machine-readable identifier), and `details` (field-level validation errors when applicable).\n\n**Embedded Template Integration**: The Firma Template Editor can be embedded in your application using a standalone JavaScript library.\n\n```html\n<!-- Load the Firma Template Editor library -->\n<script src=\"https://api.firma.dev/storage/v1/object/public/embeddables-storage/firma-template-editor.iife.js\"></script>\n\n<script>\n// Generate JWT token via API first\nfetch('https://api.firma.dev/api/v1/jwt/generate', {\n  method: 'POST',\n  headers: {\n    'Authorization': 'YOUR_API_KEY',\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    company_id: 'your-company-id',\n    companies_workspaces_templates_id: 'template-id'\n  })\n})\n.then(res => res.json())\n.then(data => {\n  // Initialize editor with JWT token\n  window.FirmaTemplateEditor.init({\n    container: '#firma-editor-container',\n    jwt: data.token,\n    templateId: 'template-id',\n    theme: 'dark',\n    readOnly: false,\n    onSave: (savedData) => {\n      console.log('Template saved:', savedData);\n    },\n    onError: (error) => {\n      console.error('Editor error:', error);\n    },\n    onLoad: (template) => {\n      console.log('Template loaded:', template);\n    }\n  });\n});\n```",
-    "version": "1.1.0",
+    "version": "1.0.0",
     "contact": {
       "name": "API Support",
       "url": "https://firma.com/support"
@@ -2794,6 +2794,109 @@
         }
       }
     },
+    "/templates/{id}/duplicate": {
+      "post": {
+        "summary": "Duplicate template into signing request",
+        "description": "Creates a new signing request by duplicating an existing template, including all fields, users, reminders, and settings.",
+        "tags": [
+          "Templates"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Template ID to duplicate"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "Custom name for the new signing request (defaults to template name)"
+                  }
+                }
+              },
+              "example": {
+                "name": "Q4 2025 Contract"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Template duplicated successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 30 requests per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "signing_request": {
+                      "$ref": "#/components/schemas/SigningRequest"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Template belongs to a different workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
     "/signing-requests": {
       "get": {
         "summary": "List Signing Requests",
@@ -4106,6 +4209,300 @@
         }
       }
     },
+    "/signing-requests/{id}/cancel": {
+      "post": {
+        "summary": "Cancel a signing request",
+        "description": "Cancels a signing request that hasn't been completed yet. Can only cancel requests that have been sent and are not already finished or cancelled.",
+        "tags": [
+          "Signing Requests"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Signing request ID"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "Optional cancellation reason"
+                  },
+                  "notify_signers": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether to notify signers of cancellation"
+                  }
+                }
+              },
+              "example": {
+                "reason": "No longer needed",
+                "notify_signers": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signing request cancelled successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 100 requests per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "signing_request_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "cancelled_on": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "notify_signers": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "409": {
+            "description": "Cannot cancel (already cancelled, finished, or not sent)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/signing-requests/{id}/resend": {
+      "post": {
+        "summary": "Resend signing request to specific recipients",
+        "description": "Resends signing request notifications to one or more recipients who are currently eligible to sign. For requests with signing order enabled, can only resend to recipients at the current active order. Cannot resend to recipients who have already signed.",
+        "tags": [
+          "Signing Requests"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Signing request ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "recipient_ids"
+                ],
+                "properties": {
+                  "recipient_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "description": "Array of recipient user IDs to resend to",
+                    "minItems": 1
+                  },
+                  "custom_message": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "description": "Optional custom message to include in resend notification"
+                  }
+                }
+              },
+              "example": {
+                "recipient_ids": [
+                  "123e4567-e89b-12d3-a456-426614174000"
+                ],
+                "custom_message": "Gentle reminder to complete your signature"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signing request resent successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 100 requests per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "signing_request_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "recipients_notified": {
+                      "type": "integer"
+                    },
+                    "recipients": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "409": {
+            "description": "Cannot resend (recipients already signed, invalid signing order, or request not sent/cancelled/finished)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "properties": {
+                        "current_order": {
+                          "type": "integer"
+                        },
+                        "invalid_recipients": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "order": {
+                                "type": "integer"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
     "/webhooks": {
       "get": {
         "summary": "List Webhooks",
@@ -4674,6 +5071,174 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/webhooks/rotate-secret": {
+      "post": {
+        "summary": "Rotate webhook signing secret",
+        "description": "Generates a new webhook signing secret for the company. The old secret remains valid for 7 days to allow graceful migration. Rate limited to 1 request per hour.",
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret rotated successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 1 request per hour"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "new_secret": {
+                      "type": "string"
+                    },
+                    "old_secret_expires_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "rotated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Webhook secret rotated successfully",
+                  "new_secret": "whsec_new123...",
+                  "old_secret_expires_at": "2025-10-23T12:00:00Z",
+                  "rotated_at": "2025-10-16T12:00:00Z"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "description": "Rate limit exceeded (1 rotation per hour)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/secret-status": {
+      "get": {
+        "summary": "Get webhook secret rotation status",
+        "description": "Returns information about the current webhook secret including rotation status and expiry of old secret if applicable.",
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret status retrieved successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 200 requests per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "has_secret": {
+                      "type": "boolean"
+                    },
+                    "secret_created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "last_rotated_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "old_secret_expires_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "nullable": true
+                    },
+                    "old_secret_still_valid": {
+                      "type": "boolean"
+                    }
+                  }
+                },
+                "example": {
+                  "has_secret": true,
+                  "secret_created_at": "2025-09-01T10:00:00Z",
+                  "last_rotated_at": "2025-10-16T12:00:00Z",
+                  "old_secret_expires_at": "2025-10-17T12:00:00Z",
+                  "old_secret_still_valid": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "No webhook configuration found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "429": {
             "$ref": "#/components/responses/RateLimitError"
