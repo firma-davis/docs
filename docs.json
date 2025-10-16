@@ -61,7 +61,6 @@
                   "api-reference/signing-requests/create-signing-request",
                   "api-reference/signing-requests/get-signing-request",
                   "api-reference/signing-requests/update-signing-request",
-                  "api-reference/signing-requests/comprehensive-update-signing-request",
                   "api-reference/signing-requests/partially-update-signing-request",
                   "api-reference/signing-requests/send-signing-request",
                   "api-reference/signing-requests/get-signing-request-fields",
