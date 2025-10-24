@@ -434,10 +434,11 @@
           "status": {
             "type": "string",
             "enum": [
-              "draft",
-              "sent",
-              "completed",
+              "not_sent",
+              "in_progress",
+              "finished",
               "cancelled",
+              "deleted",
               "expired"
             ],
             "description": "Current status of the signing request"
@@ -2944,14 +2945,15 @@
             "schema": {
               "type": "string",
               "enum": [
-                "draft",
-                "sent",
-                "completed",
+                "not_sent",
+                "in_progress",
+                "finished",
                 "cancelled",
+                "deleted",
                 "expired"
               ]
             },
-            "description": "Filter by signing request status"
+            "description": "Filter by signing request status. Supports multiple comma-separated values.\n\n**Available statuses:**\n- `not_sent`: Request created but not yet sent to signers\n- `in_progress`: Sent to signers but not completed, cancelled, or expired\n- `finished`: All signers have completed\n- `cancelled`: Request was cancelled\n- `deleted`: Soft-deleted records (normally hidden)\n- `expired`: Sent but past expiration time (sent_on + expiration_hours < now)\n\n**Example:** `?status=in_progress,expired`\n\n**Note:** The `expired` status uses post-filtering which may have performance implications on large datasets."
           },
           {
             "name": "created_after",
