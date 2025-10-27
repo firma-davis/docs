@@ -22,7 +22,7 @@ Core endpoints (see the API reference for full details):
 - PUT `/workspace/{workspace_id}/settings` — update workspace settings
 
 <Note>
-**Rate limits**:
+**Rate limits** (per API key):
 - Workspace operations: **100 requests per minute**
 - Workspace settings (GET): **200 requests per minute**
 - Workspace settings (PUT): **100 requests per minute**
@@ -66,8 +66,8 @@ Successful response (201) returns the `Workspace` resource with `id`, `name`, an
   "id": "workspace_123",
   "name": "Acme Corp Workspace",
   "protected": false,
-  "created_date": "2025-09-04T12:00:00Z",
-  "updated_date": "2025-09-04T12:00:00Z"
+  "date_created": "2025-09-04T12:00:00Z",
+  "date_changed": "2025-09-04T12:00:00Z"
 }
 ```
 

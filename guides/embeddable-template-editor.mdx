@@ -24,7 +24,7 @@ Embed Firma's template editor inside your application using JWT authentication f
 5. Revoke tokens early if needed (e.g., user logs out)
 
 <Note>
-**Rate limit**: JWT endpoints support **120 requests per minute** for high-volume applications.
+**Rate limit**: JWT endpoints support **120 requests per minute per API key** for high-volume applications.
 </Note>
 
 ---
@@ -446,19 +446,27 @@ iframe.addEventListener('load', () => {
 
 After users edit templates in the embedded editor, you'll need to save their changes. The API provides two methods:
 
-### Full update (PUT)
+### Comprehensive update (PUT)
 
-Use [`comprehensive-template-update`](../api-reference/templates/comprehensive-template-update) when replacing the entire template resource.
+Use [`comprehensive-template-update`](../api-reference/templates/comprehensive-template-update) for complex updates involving multiple sections.
 
 **When to use**:
-- Making major changes to the template
-- Replacing all template properties
-- Ensuring complete data consistency
+- Updating multiple users at once
+- Deleting users (with field reassignment/deletion)
+- Updating fields and reminders together
+- Making coordinated changes across multiple sections
+
+**Structure**:
+All sections are optional, but at least one must be provided:
+- `template_properties` - Update name, description, document, expiration, settings
+- `users` - Upsert users (include id to update, omit to create)
+- `deleted_users` - Delete users with `field_action` (delete or reassign fields)
+- `fields` - Upsert fields (include id to update, omit to create)
+- `reminders` - Upsert reminders (include id to update, omit to create)
 
 **Requirements**:
-- ✅ Must send all required fields
-- ✅ Replaces the complete template
-- ✅ Any fields not sent will be removed/reset
+- ✅ Can update multiple sections in one request
+- ✅ Supports user deletion with field handling
 
 **Example** (Node.js):
 ```javascript
@@ -469,12 +477,39 @@ const response = await fetch(`https://api.firma.dev/functions/v1/signing-request
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    name: 'Updated Contract Template',
-    workspace_id: 'ws_123',
-    // Include ALL other required fields
-    settings: {
-      // All settings must be included
-    }
+    template_properties: {
+      name: 'Updated Contract Template',
+      description: 'Updated description',
+      expiration_hours: 168,
+      settings: {
+        allow_editing_before_sending: false,
+        attach_pdf_on_finish: true,
+        allow_download: true,
+        use_signing_order: true
+      }
+    },
+    users: [
+      {
+        id: 'user1-e89b-12d3-a456-426614174000', // Include id to update existing
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        designation: 'Signer',
+        order: 1
+      }
+    ],
+    fields: [
+      {
+        type: 'signature',
+        x: 10,
+        y: 80,
+        width: 30,
+        height: 8,
+        page: 1,
+        required: true,
+        assigned_to_user_id: 'user1-e89b-12d3-a456-426614174000'
+      }
+    ]
   })
 });
 
@@ -483,22 +518,26 @@ const updatedTemplate = await response.json();
 
 ### Partial update (PATCH)
 
-Use [`partially-update-template`](../api-reference/templates/partially-update-template) when updating specific fields only.
+Use [`partially-update-template`](../api-reference/templates/partially-update-template) when updating specific properties or a single user.
 
 **When to use**:
-- Updating only the template name
-- Changing specific settings
-- Making targeted changes without affecting other properties
+- Updating name, description, or settings
+- Adding or updating one user at a time
+- Making targeted changes without affecting other data
+
+**Important**: Cannot update both properties AND a user in the same request. Choose one:
+- Update properties only (name, description, document, expiration_hours, settings)
+- OR update/create a single user
 
 **Benefits**:
-- ✅ Only send the fields you want to change
+- ✅ Only send what you want to change
 - ✅ More efficient for small changes
-- ✅ Other fields remain unchanged
+- ✅ Other data remains unchanged
 - ✅ Safer for concurrent edits
 
-**Example** (Node.js):
+**Example - Update properties** (Node.js):
 ```javascript
-// Update only the template name
+// Update only the template name and settings
 const response = await fetch(`https://api.firma.dev/functions/v1/signing-request-api/templates/${templateId}`, {
   method: 'PATCH',
   headers: {
@@ -506,18 +545,22 @@ const response = await fetch(`https://api.firma.dev/functions/v1/signing-request
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    name: 'New Template Name'
+    name: 'New Template Name',
+    settings: {
+      use_signing_order: true
+    }
   })
 });
 
 const updatedTemplate = await response.json();
 ```
 
-**Example** (Python):
+**Example - Update a user** (Python):
 ```python
 import requests
 import os
 
+# Update a single user
 response = requests.patch(
     f"https://api.firma.dev/functions/v1/signing-request-api/templates/{template_id}",
     headers={
@@ -525,9 +568,13 @@ response = requests.patch(
         "Content-Type": "application/json"
     },
     json={
-        "name": "New Template Name",
-        "settings": {
-            "require_signature": True
+        "user": {
+            "id": "user1-e89b-12d3-a456-426614174000",
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "email": "jane.smith@example.com",
+            "designation": "Signer",
+            "order": 1
         }
     }
 )
@@ -539,17 +586,18 @@ updated_template = response.json()
 
 | Scenario | Use | Reason |
 |----------|-----|--------|
-| Saving all editor changes | PUT | Complete replacement ensures consistency |
+| Saving all editor changes | PUT | Complete control over all sections (properties, users, fields, reminders) |
 | Updating template name only | PATCH | More efficient, safer |
-| Changing specific settings | PATCH | Only affects targeted fields |
-| Migrating template structure | PUT | Complete control over final state |
-| User edits single field | PATCH | Preserves other properties |
-| Bulk property updates | PUT | Clean slate approach |
+| Changing specific settings | PATCH | Only affects targeted properties |
+| Updating multiple users | PUT | Can upsert multiple users in one request |
+| Delete users with field reassignment | PUT | Supports deleted_users with field_action |
+| User edits single property | PATCH | Preserves other properties |
+| Add/update one user | PATCH | Single user mode, other users unchanged |
 
 ### Rate limiting
 
 Both endpoints share the same rate limit:
-- **100 requests/minute** per API key
+- **100 requests per minute per API key**
 
 **Best practices**:
 - Debounce auto-save (e.g., save 2 seconds after last edit)
@@ -633,7 +681,7 @@ setTimeout(async () => {
 
 ## Rate limiting
 
-JWT endpoints support **120 requests per minute** per API key.
+JWT endpoints support **120 requests per minute per API key**.
 
 **Rate limit headers**:
 ```

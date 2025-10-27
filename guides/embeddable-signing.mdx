@@ -15,7 +15,7 @@ The signing interface is available at:
 `https://app.firma.dev/signing/{signing_request_user_id}`
 
 <Note>
-**For secure embedded workflows**: Use [JWT authentication](embeddable-template-editor#jwt-authentication) to generate time-limited access tokens. JWT endpoints support **120 requests per minute**.
+**For secure embedded workflows**: Use [JWT authentication](embeddable-template-editor#jwt-authentication) to generate time-limited access tokens. JWT endpoints support **120 requests per minute per API key**.
 </Note>
 
 ## Basic iframe embed
@@ -234,7 +234,7 @@ window.addEventListener('message', (event) => {
 
 ## Rate limits
 
-**Signing request operations**: 100 requests per minute
+**Signing request operations**: 100 requests per minute per API key
 
 ```
 X-RateLimit-Limit: 100

@@ -57,7 +57,7 @@ curl -X POST "https://api.firma.dev/functions/v1/signing-request-api/webhooks" \
 ```
 
 <Note>
-**Rate limit**: Webhook endpoints support **60 requests per minute**.
+**Rate limit**: Webhook endpoints support **60 requests per minute per API key**.
 
 Your webhook URL must use HTTPS and respond within 5 seconds. Firma will send a test event during creation to verify the endpoint.
 </Note>
@@ -293,7 +293,7 @@ Response includes:
 - `last_success_at` - Timestamp of most recent successful delivery
 
 <Note>
-**Rate limit**: GET webhook requests support **60 requests per minute**.
+**Rate limit**: GET webhook requests support **60 requests per minute per API key**.
 </Note>
 
 ## Troubleshooting
