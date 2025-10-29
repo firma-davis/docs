@@ -1124,7 +1124,7 @@
       },
       "put": {
         "summary": "Update company information",
-        "description": "Update company details such as name, account owner, email, website, and icon",
+        "description": "Update all company details. This is a full replacement operation requiring all fields except icon_url.",
         "tags": [
           "Company"
         ],
@@ -1139,6 +1139,12 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "company_name",
+                  "account_owner",
+                  "account_owner_email",
+                  "website"
+                ],
                 "properties": {
                   "company_name": {
                     "type": "string",
@@ -1163,7 +1169,7 @@
                   "icon_url": {
                     "type": "string",
                     "format": "uri",
-                    "description": "URL to company icon/logo"
+                    "description": "URL to company icon/logo (optional)"
                   }
                 }
               },
@@ -1209,6 +1215,134 @@
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update company information",
+        "description": "Update specific company fields. Only provided fields will be updated. At least one field must be provided.",
+        "tags": [
+          "Company"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "company_name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "Company name"
+                  },
+                  "account_owner": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "Name of the account owner"
+                  },
+                  "account_owner_email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address of the account owner"
+                  },
+                  "website": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Company website URL"
+                  },
+                  "icon_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL to company icon/logo"
+                  }
+                }
+              },
+              "example": {
+                "company_name": "Acme Corporation Ltd",
+                "website": "https://www.acme.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Company updated successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 100 requests per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Remaining requests in current window"
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Unix timestamp when rate limit resets"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "noFields": {
+                    "summary": "No fields provided",
+                    "value": {
+                      "error": "Validation failed",
+                      "details": [
+                        {
+                          "path": [
+                            "body"
+                          ],
+                          "message": "No fields provided to update"
+                        }
+                      ]
+                    }
+                  },
+                  "invalidEmail": {
+                    "summary": "Invalid email",
+                    "value": {
+                      "error": "Validation failed",
+                      "details": [
+                        {
+                          "path": [
+                            "account_owner_email"
+                          ],
+                          "message": "Invalid email address"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -1401,6 +1535,45 @@
               }
             }
           },
+          "400": {
+            "description": "Validation error - invalid date format or sort parameters",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "invalidDate": {
+                    "summary": "Invalid date format",
+                    "value": {
+                      "error": "Validation failed",
+                      "code": "VALIDATION_ERROR",
+                      "details": [
+                        {
+                          "path": [
+                            "created_after"
+                          ],
+                          "message": "created_after must be a valid ISO 8601 date"
+                        }
+                      ]
+                    }
+                  },
+                  "invalidSort": {
+                    "summary": "Invalid sort parameter",
+                    "value": {
+                      "error": "Validation failed",
+                      "code": "VALIDATION_ERROR",
+                      "details": [
+                        {
+                          "path": [
+                            "sort_order"
+                          ],
+                          "message": "sort_order must be either 'asc' or 'desc'"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
           },
@@ -1411,7 +1584,7 @@
       },
       "post": {
         "summary": "Create a new workspace",
-        "description": "Create a new workspace for the authenticated company",
+        "description": "Create a new workspace for the authenticated company. All workspaces are created as non-protected by default. The protected status can only be set during company account creation.",
         "tags": [
           "Workspaces"
         ],
@@ -1434,17 +1607,11 @@
                     "type": "string",
                     "maxLength": 255,
                     "description": "Workspace name"
-                  },
-                  "protected": {
-                    "type": "boolean",
-                    "description": "Whether the workspace is protected from deletion",
-                    "default": false
                   }
                 }
               },
               "example": {
-                "name": "Marketing Workspace",
-                "protected": false
+                "name": "Marketing Workspace"
               }
             }
           }
@@ -1495,7 +1662,7 @@
     "/workspaces/{id}": {
       "put": {
         "summary": "Update a workspace",
-        "description": "Update an existing workspace's information",
+        "description": "Update an existing workspace's information. This is a full replacement operation requiring the name field.",
         "tags": [
           "Workspaces"
         ],
@@ -1522,6 +1689,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": [
+                  "name"
+                ],
                 "properties": {
                   "name": {
                     "type": "string",
@@ -1569,6 +1739,128 @@
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Partially update a workspace",
+        "description": "Update specific workspace fields. Only the name can be updated via API. The protected field is read-only and can only be set during company account creation.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Workspace ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "description": "Workspace name"
+                  }
+                }
+              },
+              "example": {
+                "name": "Updated Workspace Name"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace updated successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 100 requests per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Remaining requests in current window"
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Unix timestamp when rate limit resets"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "protectedField": {
+                    "summary": "Attempted to update protected field",
+                    "value": {
+                      "error": "Validation failed",
+                      "details": [
+                        {
+                          "path": [
+                            "protected"
+                          ],
+                          "message": "The 'protected' field cannot be updated via API"
+                        }
+                      ]
+                    }
+                  },
+                  "noFields": {
+                    "summary": "No fields provided",
+                    "value": {
+                      "error": "Validation failed",
+                      "details": [
+                        {
+                          "path": [
+                            "body"
+                          ],
+                          "message": "No fields provided to update"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -4662,6 +4954,45 @@
                           "type": "integer"
                         }
                       }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error - invalid date format or sort parameters",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "invalidDate": {
+                    "summary": "Invalid date format",
+                    "value": {
+                      "error": "Validation failed",
+                      "code": "VALIDATION_ERROR",
+                      "details": [
+                        {
+                          "path": [
+                            "created_before"
+                          ],
+                          "message": "created_before must be a valid ISO 8601 date"
+                        }
+                      ]
+                    }
+                  },
+                  "invalidSort": {
+                    "summary": "Invalid sort parameter",
+                    "value": {
+                      "error": "Validation failed",
+                      "code": "VALIDATION_ERROR",
+                      "details": [
+                        {
+                          "path": [
+                            "sort_by"
+                          ],
+                          "message": "Invalid sort field"
+                        }
+                      ]
                     }
                   }
                 }
