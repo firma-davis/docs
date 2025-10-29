@@ -210,8 +210,9 @@
           },
           "credits": {
             "type": "integer",
-            "description": "Available credits for the company",
-            "minimum": 0
+            "description": "Available credits for the company (read-only, managed internally)",
+            "minimum": 0,
+            "readOnly": true
           },
           "date_created": {
             "type": "string",
@@ -1171,7 +1172,8 @@
                     "format": "uri",
                     "description": "URL to company icon/logo (optional)"
                   }
-                }
+                },
+                "additionalProperties": false
               },
               "example": {
                 "company_name": "Acme Corporation Ltd",
@@ -1214,7 +1216,23 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/ValidationError"
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "protectedFields": {
+                    "summary": "Attempted to modify protected fields",
+                    "value": {
+                      "error": "The following fields cannot be modified: credits",
+                      "code": "VALIDATION_ERROR"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
@@ -1267,7 +1285,8 @@
                     "format": "uri",
                     "description": "URL to company icon/logo"
                   }
-                }
+                },
+                "additionalProperties": false
               },
               "example": {
                 "company_name": "Acme Corporation Ltd",
@@ -1311,7 +1330,17 @@
             "description": "Validation error",
             "content": {
               "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
                 "examples": {
+                  "protectedFields": {
+                    "summary": "Attempted to modify protected fields",
+                    "value": {
+                      "error": "The following fields cannot be modified: credits",
+                      "code": "VALIDATION_ERROR"
+                    }
+                  },
                   "noFields": {
                     "summary": "No fields provided",
                     "value": {
