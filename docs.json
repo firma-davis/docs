@@ -37,7 +37,8 @@
                 "pages": [
                   "api-reference/workspaces/list-workspaces",
                   "api-reference/workspaces/create-a-new-workspace",
-                  "api-reference/workspaces/update-a-workspace"
+                  "api-reference/workspaces/update-a-workspace",
+                  "api-reference/workspaces/partially-update-a-workspace"
                 ]
               },
               {
@@ -75,7 +76,8 @@
                 "group": "Company",
                 "pages": [
                   "api-reference/company/get-company-information",
-                  "api-reference/company/update-company-information"
+                  "api-reference/company/update-company-information",
+                  "api-reference/company/partially-update-company-information"
                 ]
               },
               {
