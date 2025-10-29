@@ -1021,11 +1021,11 @@
             "type": "string",
             "format": "uuid"
           },
-          "email_header": {
+          "signing_request_email_header": {
             "type": "string",
             "description": "Custom email header text"
           },
-          "email_body": {
+          "signing_request_email_body": {
             "type": "string",
             "description": "Custom HTML email body"
           },
@@ -1141,13 +1141,13 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "company_name",
+                  "name",
                   "account_owner",
                   "account_owner_email",
                   "website"
                 ],
                 "properties": {
-                  "company_name": {
+                  "name": {
                     "type": "string",
                     "maxLength": 255,
                     "description": "Company name"
@@ -1260,7 +1260,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "company_name": {
+                  "name": {
                     "type": "string",
                     "maxLength": 255,
                     "description": "Company name"
@@ -6099,10 +6099,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "email_header": {
+                  "signing_request_email_header": {
                     "type": "string"
                   },
-                  "email_body": {
+                  "signing_request_email_body": {
                     "type": "string"
                   },
                   "team_email": {
