@@ -519,10 +519,10 @@
         "type": "object",
         "required": [
           "first_name",
-          "last_name",
           "email",
           "designation"
         ],
+        "description": "Recipient schema with auto-construction and mapping behaviors. **Name field**: Auto-constructed from first_name and last_name ('First Last' if both present, otherwise 'First'). Manual name values are overwritten. **Order assignment**: If use_signing_order is disabled AND no order provided, recipients are auto-assigned sequential orders (1, 2, 3...). If use_signing_order is enabled OR any recipient has explicit order, ALL recipients MUST have order. Order determines signing sequence when use_signing_order is true. **Custom fields**: Supports both flat structure (e.g., company_name at root) and nested structure (custom_fields object). Both formats are normalized internally. **Template field mapping**: When providing custom recipients for a template, fields are mapped from template users to custom recipients by matching designation+order (e.g., template Signer order 1 fields → custom recipient Signer order 1).",
         "properties": {
           "id": {
             "type": "string",
@@ -537,7 +537,7 @@
           "last_name": {
             "type": "string",
             "maxLength": 100,
-            "description": "Recipient's last name"
+            "description": "Recipient's last name (optional, but required if using full_name or last_name prefilled variables)"
           },
           "email": {
             "type": "string",
@@ -2313,7 +2313,6 @@
                         "type": "object",
                         "required": [
                           "first_name",
-                          "last_name",
                           "email",
                           "designation",
                           "order"
@@ -2330,7 +2329,8 @@
                           },
                           "last_name": {
                             "type": "string",
-                            "maxLength": 255
+                            "maxLength": 255,
+                            "description": "Optional, but required if using full_name or last_name prefilled variables"
                           },
                           "email": {
                             "type": "string",
@@ -2515,7 +2515,6 @@
                       "type": "object",
                       "required": [
                         "first_name",
-                        "last_name",
                         "email",
                         "designation",
                         "order"
@@ -2530,7 +2529,8 @@
                           "type": "string"
                         },
                         "last_name": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Optional, but required if using full_name or last_name prefilled variables"
                         },
                         "email": {
                           "type": "string",
@@ -3456,7 +3456,7 @@
                         "items": {
                           "$ref": "#/components/schemas/Recipient"
                         },
-                        "description": "Recipients for this signing request"
+                        "description": "Recipients for this signing request (REQUIRED for document-based creation)"
                       },
                       "fields": {
                         "type": "array",
@@ -3523,7 +3523,7 @@
                         "items": {
                           "$ref": "#/components/schemas/Recipient"
                         },
-                        "description": "Override template recipients (optional). If not provided, template recipients are used."
+                        "description": "Override template recipients (optional). If not provided, template recipients are used. When overriding, fields from template users are mapped to custom recipients by matching designation+order. For example, if a template user (Signer, order 1) had fields assigned, those fields are automatically assigned to the custom recipient with (Signer, order 1). Unmapped template fields are logged but do not cause errors."
                       },
                       "fields": {
                         "type": "array",
@@ -3555,7 +3555,19 @@
                         "last_name": "Doe",
                         "email": "john@example.com",
                         "designation": "Signer",
-                        "order": 1
+                        "order": 1,
+                        "company": "Acme Corp",
+                        "title": "Manager"
+                      },
+                      {
+                        "first_name": "Jane",
+                        "email": "jane@example.com",
+                        "designation": "CC",
+                        "order": 2,
+                        "custom_fields": {
+                          "department": "HR",
+                          "employee_id": "E12345"
+                        }
                       }
                     ],
                     "fields": [
@@ -3776,7 +3788,7 @@
                     "properties": {
                       "recipient": {
                         "$ref": "#/components/schemas/Recipient",
-                        "description": "Recipient to create (omit id) or update (include id)"
+                        "description": "Recipient to create (omit id) or update (include id). When updating first_name or last_name, the name field is automatically reconstructed using existing values from database for any field not provided. Result: 'First Last' if both exist, 'First' if only first_name."
                       }
                     }
                   }
