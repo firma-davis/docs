@@ -522,12 +522,11 @@
           "email",
           "designation"
         ],
-        "description": "Recipient schema with auto-construction and mapping behaviors. **Name field**: Auto-constructed from first_name and last_name ('First Last' if both present, otherwise 'First'). Manual name values are overwritten. **Order assignment**: If use_signing_order is disabled AND no order provided, recipients are auto-assigned sequential orders (1, 2, 3...). If use_signing_order is enabled OR any recipient has explicit order, ALL recipients MUST have order. Order determines signing sequence when use_signing_order is true. **Custom fields**: Supports both flat structure (e.g., company_name at root) and nested structure (custom_fields object). Both formats are normalized internally. **Template field mapping**: When providing custom recipients for a template, fields are mapped from template users to custom recipients by matching designation+order (e.g., template Signer order 1 fields → custom recipient Signer order 1).",
+        "description": "Recipient schema with auto-construction and mapping behaviors. **Name field**: Auto-constructed from first_name and last_name ('First Last' if both present, otherwise 'First'). Manual name values are overwritten. **Order assignment**: If use_signing_order is disabled AND no order provided, recipients are auto-assigned sequential orders (1, 2, 3...). If use_signing_order is enabled OR any recipient has explicit order, ALL recipients MUST have order. Order determines signing sequence when use_signing_order is true. **Custom fields**: Supports both flat structure (e.g., company_name at root) and nested structure (custom_fields object). Both formats are normalized internally. **Template field mapping**: When providing custom recipients for a template, fields are mapped from template users to custom recipients by matching designation+order (e.g., template Signer order 1 fields → custom recipient Signer order 1). **Temporary IDs**: For document-based creation, use temporary IDs (format: 'temp_1', 'temp_2', etc.) to reference recipients in fields and reminders before they're created.",
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid",
-            "description": "Unique identifier (include for updates, omit for new recipients)"
+            "description": "Unique identifier. For updates: use existing UUID. For document-based creation: optionally use temporary ID (format: 'temp_1', 'temp_2', etc.) to reference recipients in fields and reminders before creation. Temporary IDs are automatically resolved to real UUIDs in the response."
           },
           "first_name": {
             "type": "string",
@@ -687,8 +686,7 @@
           },
           "recipient_id": {
             "type": "string",
-            "format": "uuid",
-            "description": "ID of recipient assigned to this field"
+            "description": "ID of recipient assigned to this field. Use real UUID for template-based creation or updates, or temporary ID (e.g., 'temp_1') for document-based creation to reference recipients defined in the same request."
           },
           "variable_name": {
             "type": "string",
@@ -757,9 +755,8 @@
           },
           "recipient_id": {
             "type": "string",
-            "format": "uuid",
             "nullable": true,
-            "description": "Specific recipient ID (required if all_users is false)"
+            "description": "Specific recipient ID (required if all_users is false). Use real UUID for existing recipients or temporary ID (e.g., 'temp_1') for document-based creation to reference recipients in the same request."
           },
           "subject": {
             "type": "string",
@@ -3404,7 +3401,7 @@
       },
       "post": {
         "summary": "Create Signing Request",
-        "description": "Create a new signing request either from a PDF document (document-based) or from an existing template (template-based). For document-based creation, allow_editing_before_sending is automatically set to true. For template-based creation, properties are inherited from the template and can be overridden.",
+        "description": "Create a new signing request either from a PDF document (document-based) or from an existing template (template-based). For document-based creation, allow_editing_before_sending is automatically set to true. For template-based creation, properties are inherited from the template and can be overridden.\n\n**Temporary ID Pattern**: For document-based creation, you can reference recipients before they're created using temporary IDs (format: 'temp_X' where X is any identifier, e.g., 'temp_1', 'temp_alice'). Use these temporary IDs in recipient.id, field.recipient_id, and reminder.recipient_id. The API validates all references and automatically maps temporary IDs to real UUIDs after recipients are created. The response contains only real UUIDs.\n\n**Temporary ID Validation**: Temporary IDs must start with 'temp_', be unique across all recipients in the request, and all field/reminder references must point to recipients defined in the same request. Invalid format, duplicate IDs, or missing recipient references return a 400 error with detailed validation messages.",
         "tags": [
           "Signing Requests"
         ],
@@ -3425,7 +3422,7 @@
                       "name",
                       "document"
                     ],
-                    "description": "Document-based creation - upload a PDF document",
+                    "description": "Document-based creation - upload a PDF document. Recipients can be assigned temporary IDs (e.g., 'temp_1') to reference them in fields and reminders before creation.",
                     "properties": {
                       "name": {
                         "type": "string",
@@ -3456,7 +3453,7 @@
                         "items": {
                           "$ref": "#/components/schemas/Recipient"
                         },
-                        "description": "Recipients for this signing request (REQUIRED for document-based creation)"
+                        "description": "Recipients for this signing request (REQUIRED for document-based creation). Each recipient can optionally have a temporary id (e.g., 'temp_1', 'temp_2') to reference them in fields and reminders before creation."
                       },
                       "fields": {
                         "type": "array",
@@ -3581,6 +3578,117 @@
                         },
                         "page_number": 1,
                         "required": true
+                      }
+                    ]
+                  }
+                },
+                "document-based-with-temp-ids": {
+                  "summary": "Create from PDF with temporary recipient IDs",
+                  "description": "Demonstrates the temporary ID pattern for document-based creation. Recipients are assigned temporary IDs (temp_1, temp_2) which are referenced in fields and reminders. The API validates all references and returns real UUIDs in the response.",
+                  "value": {
+                    "name": "Multi-Party Agreement",
+                    "description": "Contract requiring multiple signatures with automated reminders",
+                    "document": "JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC...",
+                    "expiration_hours": 168,
+                    "settings": {
+                      "use_signing_order": true,
+                      "allow_download": true,
+                      "attach_pdf_on_finish": true
+                    },
+                    "recipients": [
+                      {
+                        "id": "temp_1",
+                        "first_name": "Alice",
+                        "last_name": "Johnson",
+                        "email": "alice@example.com",
+                        "designation": "Signer",
+                        "order": 1,
+                        "company": "Acme Corp",
+                        "title": "CEO"
+                      },
+                      {
+                        "id": "temp_2",
+                        "first_name": "Bob",
+                        "last_name": "Smith",
+                        "email": "bob@example.com",
+                        "designation": "Approver",
+                        "order": 2,
+                        "company": "Beta LLC",
+                        "title": "Legal Counsel"
+                      },
+                      {
+                        "id": "temp_3",
+                        "first_name": "Carol",
+                        "email": "carol@example.com",
+                        "designation": "CC",
+                        "company": "Acme Corp",
+                        "title": "HR Manager"
+                      }
+                    ],
+                    "fields": [
+                      {
+                        "type": "signature",
+                        "recipient_id": "temp_1",
+                        "position": {
+                          "x": 10,
+                          "y": 70,
+                          "width": 30,
+                          "height": 10
+                        },
+                        "page_number": 1,
+                        "required": true
+                      },
+                      {
+                        "type": "date",
+                        "recipient_id": "temp_1",
+                        "position": {
+                          "x": 10,
+                          "y": 82,
+                          "width": 20,
+                          "height": 6
+                        },
+                        "page_number": 1,
+                        "required": true,
+                        "date_signing_default": true
+                      },
+                      {
+                        "type": "signature",
+                        "recipient_id": "temp_2",
+                        "position": {
+                          "x": 50,
+                          "y": 70,
+                          "width": 30,
+                          "height": 10
+                        },
+                        "page_number": 1,
+                        "required": true
+                      },
+                      {
+                        "type": "text",
+                        "recipient_id": "temp_2",
+                        "position": {
+                          "x": 50,
+                          "y": 82,
+                          "width": 30,
+                          "height": 6
+                        },
+                        "page_number": 1,
+                        "required": false,
+                        "variable_name": "approval_notes"
+                      }
+                    ],
+                    "reminders": [
+                      {
+                        "hours": 48,
+                        "recipient_id": "temp_1",
+                        "subject": "Reminder: Sign Agreement",
+                        "message": "Please review and sign the multi-party agreement at your earliest convenience."
+                      },
+                      {
+                        "hours": 24,
+                        "recipient_id": "temp_2",
+                        "subject": "Urgent: Approval Needed",
+                        "message": "This agreement requires your approval within 24 hours."
                       }
                     ]
                   }
