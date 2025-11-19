@@ -528,6 +528,10 @@
             "type": "string",
             "description": "Unique identifier. For updates: use existing UUID. For document-based creation: optionally use temporary ID (format: 'temp_1', 'temp_2', etc.) to reference recipients in fields and reminders before creation. Temporary IDs are automatically resolved to real UUIDs in the response."
           },
+          "_temp_id": {
+            "type": "string",
+            "description": "Temporary identifier for new recipients in PUT (comprehensive update) requests (e.g., 'temp_1'). Use this when creating new recipients alongside existing ones in comprehensive updates. Must start with 'temp_' and be unique within the request. Not used for POST (create) requests - use 'id' field instead."
+          },
           "first_name": {
             "type": "string",
             "maxLength": 100,
@@ -4008,7 +4012,7 @@
       },
       "put": {
         "summary": "Comprehensive Update Signing Request",
-        "description": "Perform comprehensive updates to a signing request including properties, recipients, fields, and reminders. Cannot update after signing request has been sent, completed, or cancelled. All sections are optional but at least one must be provided.",
+        "description": "Perform comprehensive updates to a signing request including properties, recipients, fields, and reminders. Cannot update after signing request has been sent, completed, or cancelled. All sections are optional but at least one must be provided.\n\n**Temporary ID Pattern for New Recipients**: When adding new recipients in a comprehensive update, use the '_temp_id' field (format: 'temp_X') instead of 'id' to establish relationships with fields and reminders. This allows you to create new recipients and reference them in fields/reminders in a single request. Use the 'id' field to update existing recipients. Validation rules: (1) Temporary IDs must start with 'temp_'; (2) Each temporary ID must be unique within the request; (3) Fields and reminders can reference temporary IDs in their recipient_id property; (4) The API will automatically resolve temporary IDs to real UUIDs after recipient creation.",
         "tags": [
           "Signing Requests"
         ],
@@ -4066,7 +4070,7 @@
                     "items": {
                       "$ref": "#/components/schemas/Recipient"
                     },
-                    "description": "Upsert recipients - include id to update, omit id to create new"
+                    "description": "Upsert recipients - include 'id' to update existing recipients, use '_temp_id' (e.g., 'temp_1') for new recipients to reference them in fields and reminders within the same request"
                   },
                   "deleted_recipients": {
                     "type": "array",
@@ -4143,6 +4147,119 @@
                     "message": "This is a reminder to complete your signature."
                   }
                 ]
+              },
+              "examples": {
+                "comprehensive-update": {
+                  "summary": "Comprehensive update with all sections",
+                  "value": {
+                    "signing_request_properties": {
+                      "name": "Updated Contract Name",
+                      "expiration_hours": 72
+                    },
+                    "recipients": [
+                      {
+                        "id": "rec1-e89b-12d3-a456-426614174000",
+                        "first_name": "John",
+                        "last_name": "Smith",
+                        "email": "john.smith@example.com",
+                        "designation": "Signer",
+                        "order": 1
+                      },
+                      {
+                        "first_name": "Jane",
+                        "last_name": "Doe",
+                        "email": "jane@example.com",
+                        "designation": "CC",
+                        "order": 2
+                      }
+                    ],
+                    "deleted_recipients": [
+                      {
+                        "recipient_id": "rec2-e89b-12d3-a456-426614174000",
+                        "field_action": "reassign",
+                        "reassign_to_recipient_id": "rec1-e89b-12d3-a456-426614174000"
+                      }
+                    ],
+                    "fields": [
+                      {
+                        "id": "field1-e89b-12d3-a456-426614174000",
+                        "type": "signature",
+                        "position": {
+                          "x": 15,
+                          "y": 85,
+                          "width": 30,
+                          "height": 10
+                        },
+                        "page_number": 1,
+                        "required": true,
+                        "recipient_id": "rec1-e89b-12d3-a456-426614174000"
+                      }
+                    ],
+                    "reminders": [
+                      {
+                        "hours": 48,
+                        "all_users": true,
+                        "subject": "Reminder: Please sign the document",
+                        "message": "This is a reminder to complete your signature."
+                      }
+                    ]
+                  }
+                },
+                "update-with-temp-ids": {
+                  "summary": "Update with new recipients using temporary IDs",
+                  "description": "Comprehensive update adding new recipients with temporary IDs alongside existing recipients",
+                  "value": {
+                    "signing_request_properties": {
+                      "name": "Updated NDA Agreement"
+                    },
+                    "recipients": [
+                      {
+                        "id": "existing-recipient-uuid",
+                        "email": "updated@example.com"
+                      },
+                      {
+                        "_temp_id": "temp_new_signer",
+                        "first_name": "New",
+                        "last_name": "Signer",
+                        "email": "newsigner@example.com",
+                        "designation": "Signer",
+                        "order": 2
+                      }
+                    ],
+                    "fields": [
+                      {
+                        "id": "existing-field-uuid",
+                        "position": {
+                          "x": 50,
+                          "y": 700,
+                          "width": 150,
+                          "height": 50
+                        }
+                      },
+                      {
+                        "recipient_id": "temp_new_signer",
+                        "type": "signature",
+                        "page_number": 1,
+                        "position": {
+                          "x": 50,
+                          "y": 600,
+                          "width": 150,
+                          "height": 50
+                        },
+                        "required": true
+                      }
+                    ],
+                    "reminders": [
+                      {
+                        "recipient_id": "temp_new_signer",
+                        "hours": 24,
+                        "all_users": false,
+                        "subject": "Reminder: Sign Document",
+                        "message": "Please sign the updated NDA."
+                      }
+                    ]
+                  }
+                }
               }
             }
           }
