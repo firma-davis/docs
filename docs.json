@@ -20,6 +20,7 @@
               "guides/workspace-settings",
               "guides/sending-signing-request",
               "guides/embeddable-template-editor",
+              "guides/embeddable-signing-request-editor",
               "guides/embeddable-signing",
               "guides/webhooks"
             ]
