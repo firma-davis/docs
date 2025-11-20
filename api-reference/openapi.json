@@ -172,6 +172,178 @@
         }
       }
     },
+    "requestBodies": {
+      "PatchSigningRequestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/PatchSigningRequestBodySchema"
+            },
+            "examples": {
+              "update-properties": {
+                "summary": "Update properties",
+                "value": {
+                  "name": "Updated Contract Name",
+                  "expiration_hours": 72,
+                  "settings": {
+                    "use_signing_order": true
+                  }
+                }
+              },
+              "update-recipient": {
+                "summary": "Update single recipient",
+                "value": {
+                  "recipient": {
+                    "id": "rec123-e89b-12d3-a456-426614174000",
+                    "first_name": "John",
+                    "last_name": "Smith",
+                    "email": "john.smith@example.com",
+                    "designation": "Signer",
+                    "order": 1
+                  }
+                }
+              },
+              "add-recipient": {
+                "summary": "Add new recipient",
+                "value": {
+                  "recipient": {
+                    "first_name": "Jane",
+                    "last_name": "Doe",
+                    "email": "jane@example.com",
+                    "designation": "CC",
+                    "order": 2
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UpdateSigningRequestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/UpdateSigningRequestBodySchema"
+            },
+            "examples": {
+              "comprehensive-update": {
+                "summary": "Comprehensive update with all sections",
+                "value": {
+                  "signing_request_properties": {
+                    "name": "Updated Contract Name",
+                    "expiration_hours": 72
+                  },
+                  "recipients": [
+                    {
+                      "id": "rec1-e89b-12d3-a456-426614174000",
+                      "first_name": "John",
+                      "last_name": "Smith",
+                      "email": "john.smith@example.com",
+                      "designation": "Signer",
+                      "order": 1
+                    },
+                    {
+                      "first_name": "Jane",
+                      "last_name": "Doe",
+                      "email": "jane@example.com",
+                      "designation": "CC",
+                      "order": 2
+                    }
+                  ],
+                  "deleted_recipients": [
+                    {
+                      "recipient_id": "rec2-e89b-12d3-a456-426614174000",
+                      "field_action": "reassign",
+                      "reassign_to_recipient_id": "rec1-e89b-12d3-a456-426614174000"
+                    }
+                  ],
+                  "fields": [
+                    {
+                      "id": "field1-e89b-12d3-a456-426614174000",
+                      "type": "signature",
+                      "position": {
+                        "x": 15,
+                        "y": 85,
+                        "width": 30,
+                        "height": 10
+                      },
+                      "page_number": 1,
+                      "required": true,
+                      "recipient_id": "rec1-e89b-12d3-a456-426614174000"
+                    }
+                  ],
+                  "reminders": [
+                    {
+                      "hours": 48,
+                      "all_users": true,
+                      "subject": "Reminder: Please sign the document",
+                      "message": "This is a reminder to complete your signature."
+                    }
+                  ]
+                }
+              },
+              "update-with-temp-ids": {
+                "summary": "Update with new recipients using temporary IDs",
+                "description": "Comprehensive update adding new recipients with temporary IDs alongside existing recipients",
+                "value": {
+                  "signing_request_properties": {
+                    "name": "Updated NDA Agreement"
+                  },
+                  "recipients": [
+                    {
+                      "id": "existing-recipient-uuid",
+                      "email": "updated@example.com"
+                    },
+                    {
+                      "_temp_id": "temp_new_signer",
+                      "first_name": "New",
+                      "last_name": "Signer",
+                      "email": "newsigner@example.com",
+                      "designation": "Signer",
+                      "order": 2
+                    }
+                  ],
+                  "fields": [
+                    {
+                      "id": "existing-field-uuid",
+                      "position": {
+                        "x": 50,
+                        "y": 700,
+                        "width": 150,
+                        "height": 50
+                      }
+                    },
+                    {
+                      "recipient_id": "temp_new_signer",
+                      "type": "signature",
+                      "page_number": 1,
+                      "position": {
+                        "x": 50,
+                        "y": 600,
+                        "width": 150,
+                        "height": 50
+                      },
+                      "required": true
+                    }
+                  ],
+                  "reminders": [
+                    {
+                      "recipient_id": "temp_new_signer",
+                      "hours": 24,
+                      "all_users": false,
+                      "subject": "Reminder: Sign Document",
+                      "message": "Please sign the updated NDA."
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "schemas": {
       "Company": {
         "type": "object",
@@ -946,6 +1118,110 @@
           }
         }
       },
+      "PatchSigningRequestBodySchema": {
+        "oneOf": [
+          {
+            "type": "object",
+            "description": "Update signing request properties only",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 255,
+                "description": "New name for signing request"
+              },
+              "description": {
+                "type": "string",
+                "description": "New description"
+              },
+              "document": {
+                "type": "string",
+                "format": "byte",
+                "description": "Replace document with new base64-encoded PDF. Page count will be auto-extracted."
+              },
+              "expiration_hours": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "New expiration hours"
+              },
+              "settings": {
+                "$ref": "#/components/schemas/SigningRequestSettings",
+                "description": "Update settings"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "recipient"
+            ],
+            "description": "Create or update a single recipient",
+            "properties": {
+              "recipient": {
+                "$ref": "#/components/schemas/Recipient",
+                "description": "Recipient to create (omit id) or update (include id). When updating first_name or last_name, the name field is automatically reconstructed using existing values from database for any field not provided. Result: 'First Last' if both exist, 'First' if only first_name."
+              }
+            }
+          }
+        ]
+      },
+      "UpdateSigningRequestBodySchema": {
+        "type": "object",
+        "properties": {
+          "signing_request_properties": {
+            "type": "object",
+            "description": "Update signing request properties",
+            "properties": {
+              "name": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "description": {
+                "type": "string"
+              },
+              "document": {
+                "type": "string",
+                "format": "byte",
+                "description": "Replace document (base64-encoded PDF)"
+              },
+              "expiration_hours": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "settings": {
+                "$ref": "#/components/schemas/SigningRequestSettings"
+              }
+            }
+          },
+          "recipients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recipient"
+            },
+            "description": "Upsert recipients - include 'id' to update existing recipients, use '_temp_id' (e.g., 'temp_1') for new recipients to reference them in fields and reminders within the same request"
+          },
+          "deleted_recipients": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeletedRecipient"
+            },
+            "description": "Recipients to delete and how to handle their fields"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Field"
+            },
+            "description": "Upsert fields - include id to update, omit id to create new"
+          },
+          "reminders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SigningRequestReminder"
+            },
+            "description": "Upsert reminders - include id to update, omit id to create new"
+          }
+        }
+      },
       "GenerateJWTRequest": {
         "type": "object",
         "required": [
@@ -997,6 +1273,75 @@
         }
       },
       "RevokeJWTResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Confirmation message"
+          },
+          "jwt_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the revoked JWT"
+          },
+          "revoked_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the JWT was revoked"
+          }
+        }
+      },
+      "GenerateSigningRequestJWTRequest": {
+        "type": "object",
+        "required": [
+          "companies_workspaces_signing_requests_id"
+        ],
+        "properties": {
+          "companies_workspaces_signing_requests_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the signing request to generate JWT for"
+          }
+        }
+      },
+      "GenerateSigningRequestJWTResponse": {
+        "type": "object",
+        "properties": {
+          "jwt": {
+            "type": "string",
+            "description": "The generated JWT token"
+          },
+          "jwt_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for this JWT"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "JWT expiration timestamp (7 days from creation)"
+          },
+          "signing_request_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the signing request this JWT is for"
+          }
+        }
+      },
+      "RevokeSigningRequestJWTRequest": {
+        "type": "object",
+        "required": [
+          "jwt_id"
+        ],
+        "properties": {
+          "jwt_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the JWT token to revoke"
+          }
+        }
+      },
+      "RevokeSigningRequestJWTResponse": {
         "type": "object",
         "properties": {
           "message": {
@@ -3415,308 +3760,7 @@
           }
         ],
         "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "required": [
-                      "name",
-                      "document"
-                    ],
-                    "description": "Document-based creation - upload a PDF document. Recipients can be assigned temporary IDs (e.g., 'temp_1') to reference them in fields and reminders before creation.",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "maxLength": 255,
-                        "description": "Name for the signing request"
-                      },
-                      "description": {
-                        "type": "string",
-                        "description": "Optional description"
-                      },
-                      "document": {
-                        "type": "string",
-                        "format": "byte",
-                        "description": "Base64-encoded PDF document. Page count will be automatically extracted. Maximum size: 20MB."
-                      },
-                      "expiration_hours": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "default": 168,
-                        "description": "Hours until expiration (default: 168 = 7 days)"
-                      },
-                      "settings": {
-                        "$ref": "#/components/schemas/SigningRequestSettings",
-                        "description": "Signing request settings (allow_editing_before_sending will be set to true automatically)"
-                      },
-                      "recipients": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/Recipient"
-                        },
-                        "description": "Recipients for this signing request (REQUIRED for document-based creation). Each recipient can optionally have a temporary id (e.g., 'temp_1', 'temp_2') to reference them in fields and reminders before creation."
-                      },
-                      "fields": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/Field"
-                        },
-                        "description": "Fields to be completed in the document"
-                      },
-                      "reminders": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/SigningRequestReminder"
-                        },
-                        "description": "Reminders to send before expiration"
-                      }
-                    }
-                  },
-                  {
-                    "type": "object",
-                    "required": [
-                      "template_id"
-                    ],
-                    "description": "Template-based creation - create from existing template",
-                    "properties": {
-                      "template_id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "description": "ID of template to use. Template must belong to the same workspace."
-                      },
-                      "name": {
-                        "type": "string",
-                        "maxLength": 255,
-                        "description": "Override template name (optional)"
-                      },
-                      "description": {
-                        "type": "string",
-                        "description": "Override template description (optional)"
-                      },
-                      "expiration_hours": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "description": "Override template expiration hours (optional)"
-                      },
-                      "settings": {
-                        "type": "object",
-                        "description": "Override specific template settings (optional). Unspecified settings inherit from template.",
-                        "properties": {
-                          "use_signing_order": {
-                            "type": "boolean"
-                          },
-                          "allow_download": {
-                            "type": "boolean"
-                          },
-                          "attach_pdf_on_finish": {
-                            "type": "boolean"
-                          },
-                          "allow_editing_before_sending": {
-                            "type": "boolean"
-                          }
-                        }
-                      },
-                      "recipients": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/Recipient"
-                        },
-                        "description": "Override template recipients (optional). If not provided, template recipients are used. When overriding, fields from template users are mapped to custom recipients by matching designation+order. For example, if a template user (Signer, order 1) had fields assigned, those fields are automatically assigned to the custom recipient with (Signer, order 1). Unmapped template fields are logged but do not cause errors."
-                      },
-                      "fields": {
-                        "type": "array",
-                        "items": {
-                          "$ref": "#/components/schemas/Field"
-                        },
-                        "description": "Override template fields (optional). If not provided, template fields are used."
-                      }
-                    }
-                  }
-                ]
-              },
-              "examples": {
-                "document-based": {
-                  "summary": "Create from PDF document",
-                  "value": {
-                    "name": "Employment Contract - John Doe",
-                    "description": "New hire employment agreement",
-                    "document": "JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC...",
-                    "expiration_hours": 168,
-                    "settings": {
-                      "use_signing_order": false,
-                      "allow_download": true,
-                      "attach_pdf_on_finish": true
-                    },
-                    "recipients": [
-                      {
-                        "first_name": "John",
-                        "last_name": "Doe",
-                        "email": "john@example.com",
-                        "designation": "Signer",
-                        "order": 1,
-                        "company": "Acme Corp",
-                        "title": "Manager"
-                      },
-                      {
-                        "first_name": "Jane",
-                        "email": "jane@example.com",
-                        "designation": "CC",
-                        "order": 2,
-                        "custom_fields": {
-                          "department": "HR",
-                          "employee_id": "E12345"
-                        }
-                      }
-                    ],
-                    "fields": [
-                      {
-                        "type": "signature",
-                        "position": {
-                          "x": 10,
-                          "y": 80,
-                          "width": 30,
-                          "height": 10
-                        },
-                        "page_number": 1,
-                        "required": true
-                      }
-                    ]
-                  }
-                },
-                "document-based-with-temp-ids": {
-                  "summary": "Create from PDF with temporary recipient IDs",
-                  "description": "Demonstrates the temporary ID pattern for document-based creation. Recipients are assigned temporary IDs (temp_1, temp_2) which are referenced in fields and reminders. The API validates all references and returns real UUIDs in the response.",
-                  "value": {
-                    "name": "Multi-Party Agreement",
-                    "description": "Contract requiring multiple signatures with automated reminders",
-                    "document": "JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PC...",
-                    "expiration_hours": 168,
-                    "settings": {
-                      "use_signing_order": true,
-                      "allow_download": true,
-                      "attach_pdf_on_finish": true
-                    },
-                    "recipients": [
-                      {
-                        "id": "temp_1",
-                        "first_name": "Alice",
-                        "last_name": "Johnson",
-                        "email": "alice@example.com",
-                        "designation": "Signer",
-                        "order": 1,
-                        "company": "Acme Corp",
-                        "title": "CEO"
-                      },
-                      {
-                        "id": "temp_2",
-                        "first_name": "Bob",
-                        "last_name": "Smith",
-                        "email": "bob@example.com",
-                        "designation": "Approver",
-                        "order": 2,
-                        "company": "Beta LLC",
-                        "title": "Legal Counsel"
-                      },
-                      {
-                        "id": "temp_3",
-                        "first_name": "Carol",
-                        "email": "carol@example.com",
-                        "designation": "CC",
-                        "company": "Acme Corp",
-                        "title": "HR Manager"
-                      }
-                    ],
-                    "fields": [
-                      {
-                        "type": "signature",
-                        "recipient_id": "temp_1",
-                        "position": {
-                          "x": 10,
-                          "y": 70,
-                          "width": 30,
-                          "height": 10
-                        },
-                        "page_number": 1,
-                        "required": true
-                      },
-                      {
-                        "type": "date",
-                        "recipient_id": "temp_1",
-                        "position": {
-                          "x": 10,
-                          "y": 82,
-                          "width": 20,
-                          "height": 6
-                        },
-                        "page_number": 1,
-                        "required": true,
-                        "date_signing_default": true
-                      },
-                      {
-                        "type": "signature",
-                        "recipient_id": "temp_2",
-                        "position": {
-                          "x": 50,
-                          "y": 70,
-                          "width": 30,
-                          "height": 10
-                        },
-                        "page_number": 1,
-                        "required": true
-                      },
-                      {
-                        "type": "text",
-                        "recipient_id": "temp_2",
-                        "position": {
-                          "x": 50,
-                          "y": 82,
-                          "width": 30,
-                          "height": 6
-                        },
-                        "page_number": 1,
-                        "required": false,
-                        "variable_name": "approval_notes"
-                      }
-                    ],
-                    "reminders": [
-                      {
-                        "hours": 48,
-                        "recipient_id": "temp_1",
-                        "subject": "Reminder: Sign Agreement",
-                        "message": "Please review and sign the multi-party agreement at your earliest convenience."
-                      },
-                      {
-                        "hours": 24,
-                        "recipient_id": "temp_2",
-                        "subject": "Urgent: Approval Needed",
-                        "message": "This agreement requires your approval within 24 hours."
-                      }
-                    ]
-                  }
-                },
-                "template-based": {
-                  "summary": "Create from template",
-                  "value": {
-                    "template_id": "123e4567-e89b-12d3-a456-426614174000",
-                    "name": "Employment Contract - Jane Smith",
-                    "expiration_hours": 72,
-                    "recipients": [
-                      {
-                        "first_name": "Jane",
-                        "last_name": "Smith",
-                        "email": "jane@example.com",
-                        "designation": "Signer",
-                        "order": 1
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
+          "$ref": "#/components/requestBodies/PatchSigningRequestBody"
         },
         "responses": {
           "201": {
@@ -4034,235 +4078,7 @@
           }
         ],
         "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "signing_request_properties": {
-                    "type": "object",
-                    "description": "Update signing request properties",
-                    "properties": {
-                      "name": {
-                        "type": "string",
-                        "maxLength": 255
-                      },
-                      "description": {
-                        "type": "string"
-                      },
-                      "document": {
-                        "type": "string",
-                        "format": "byte",
-                        "description": "Replace document (base64-encoded PDF)"
-                      },
-                      "expiration_hours": {
-                        "type": "integer",
-                        "minimum": 1
-                      },
-                      "settings": {
-                        "$ref": "#/components/schemas/SigningRequestSettings"
-                      }
-                    }
-                  },
-                  "recipients": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Recipient"
-                    },
-                    "description": "Upsert recipients - include 'id' to update existing recipients, use '_temp_id' (e.g., 'temp_1') for new recipients to reference them in fields and reminders within the same request"
-                  },
-                  "deleted_recipients": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/DeletedRecipient"
-                    },
-                    "description": "Recipients to delete and how to handle their fields"
-                  },
-                  "fields": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/Field"
-                    },
-                    "description": "Upsert fields - include id to update, omit id to create new"
-                  },
-                  "reminders": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SigningRequestReminder"
-                    },
-                    "description": "Upsert reminders - include id to update, omit id to create new"
-                  }
-                }
-              },
-              "example": {
-                "signing_request_properties": {
-                  "name": "Updated Contract Name",
-                  "expiration_hours": 72
-                },
-                "recipients": [
-                  {
-                    "id": "rec1-e89b-12d3-a456-426614174000",
-                    "first_name": "John",
-                    "last_name": "Smith",
-                    "email": "john.smith@example.com",
-                    "designation": "Signer",
-                    "order": 1
-                  },
-                  {
-                    "first_name": "Jane",
-                    "last_name": "Doe",
-                    "email": "jane@example.com",
-                    "designation": "CC",
-                    "order": 2
-                  }
-                ],
-                "deleted_recipients": [
-                  {
-                    "recipient_id": "rec2-e89b-12d3-a456-426614174000",
-                    "field_action": "reassign",
-                    "reassign_to_recipient_id": "rec1-e89b-12d3-a456-426614174000"
-                  }
-                ],
-                "fields": [
-                  {
-                    "id": "field1-e89b-12d3-a456-426614174000",
-                    "type": "signature",
-                    "position": {
-                      "x": 15,
-                      "y": 85,
-                      "width": 30,
-                      "height": 10
-                    },
-                    "page_number": 1,
-                    "required": true,
-                    "recipient_id": "rec1-e89b-12d3-a456-426614174000"
-                  }
-                ],
-                "reminders": [
-                  {
-                    "hours": 48,
-                    "all_users": true,
-                    "subject": "Reminder: Please sign the document",
-                    "message": "This is a reminder to complete your signature."
-                  }
-                ]
-              },
-              "examples": {
-                "comprehensive-update": {
-                  "summary": "Comprehensive update with all sections",
-                  "value": {
-                    "signing_request_properties": {
-                      "name": "Updated Contract Name",
-                      "expiration_hours": 72
-                    },
-                    "recipients": [
-                      {
-                        "id": "rec1-e89b-12d3-a456-426614174000",
-                        "first_name": "John",
-                        "last_name": "Smith",
-                        "email": "john.smith@example.com",
-                        "designation": "Signer",
-                        "order": 1
-                      },
-                      {
-                        "first_name": "Jane",
-                        "last_name": "Doe",
-                        "email": "jane@example.com",
-                        "designation": "CC",
-                        "order": 2
-                      }
-                    ],
-                    "deleted_recipients": [
-                      {
-                        "recipient_id": "rec2-e89b-12d3-a456-426614174000",
-                        "field_action": "reassign",
-                        "reassign_to_recipient_id": "rec1-e89b-12d3-a456-426614174000"
-                      }
-                    ],
-                    "fields": [
-                      {
-                        "id": "field1-e89b-12d3-a456-426614174000",
-                        "type": "signature",
-                        "position": {
-                          "x": 15,
-                          "y": 85,
-                          "width": 30,
-                          "height": 10
-                        },
-                        "page_number": 1,
-                        "required": true,
-                        "recipient_id": "rec1-e89b-12d3-a456-426614174000"
-                      }
-                    ],
-                    "reminders": [
-                      {
-                        "hours": 48,
-                        "all_users": true,
-                        "subject": "Reminder: Please sign the document",
-                        "message": "This is a reminder to complete your signature."
-                      }
-                    ]
-                  }
-                },
-                "update-with-temp-ids": {
-                  "summary": "Update with new recipients using temporary IDs",
-                  "description": "Comprehensive update adding new recipients with temporary IDs alongside existing recipients",
-                  "value": {
-                    "signing_request_properties": {
-                      "name": "Updated NDA Agreement"
-                    },
-                    "recipients": [
-                      {
-                        "id": "existing-recipient-uuid",
-                        "email": "updated@example.com"
-                      },
-                      {
-                        "_temp_id": "temp_new_signer",
-                        "first_name": "New",
-                        "last_name": "Signer",
-                        "email": "newsigner@example.com",
-                        "designation": "Signer",
-                        "order": 2
-                      }
-                    ],
-                    "fields": [
-                      {
-                        "id": "existing-field-uuid",
-                        "position": {
-                          "x": 50,
-                          "y": 700,
-                          "width": 150,
-                          "height": 50
-                        }
-                      },
-                      {
-                        "recipient_id": "temp_new_signer",
-                        "type": "signature",
-                        "page_number": 1,
-                        "position": {
-                          "x": 50,
-                          "y": 600,
-                          "width": 150,
-                          "height": 50
-                        },
-                        "required": true
-                      }
-                    ],
-                    "reminders": [
-                      {
-                        "recipient_id": "temp_new_signer",
-                        "hours": 24,
-                        "all_users": false,
-                        "subject": "Reminder: Sign Document",
-                        "message": "Please sign the updated NDA."
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
+          "$ref": "#/components/requestBodies/UpdateSigningRequestBody"
         },
         "responses": {
           "200": {
@@ -6014,6 +5830,418 @@
           },
           "429": {
             "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/jwt/generate-signing-request": {
+      "post": {
+        "summary": "Generate JWT token for signing request",
+        "description": "Generate a JWT token for embedding a signing request editor. JWT expires after 7 days.",
+        "tags": [
+          "JWT Management"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateSigningRequestJWTRequest"
+              },
+              "example": {
+                "companies_workspaces_signing_requests_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JWT generated successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 120 requests per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Remaining requests in current window"
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Unix timestamp when rate limit resets"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateSigningRequestJWTResponse"
+                },
+                "example": {
+                  "jwt": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "jwt_id": "jwt123-e89b-12d3-a456-426614174000",
+                  "expires_at": "2024-03-27T10:00:00Z",
+                  "signing_request_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/jwt/revoke-signing-request": {
+      "post": {
+        "summary": "Revoke a signing request JWT token",
+        "description": "Revoke a previously generated JWT token for a signing request, preventing it from being used for embedded editing",
+        "tags": [
+          "JWT Management"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeSigningRequestJWTRequest"
+              },
+              "example": {
+                "jwt_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "JWT revoked successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 120 requests per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Remaining requests in current window"
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Unix timestamp when rate limit resets"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeSigningRequestJWTResponse"
+                },
+                "example": {
+                  "message": "JWT revoked successfully",
+                  "jwt_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "revoked_at": "2024-03-20T16:45:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - JWT already revoked or invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "alreadyRevoked": {
+                    "value": {
+                      "error": "Bad Request",
+                      "message": "JWT has already been revoked"
+                    }
+                  },
+                  "invalidJwt": {
+                    "value": {
+                      "error": "Bad Request",
+                      "message": "Invalid JWT ID"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/save-embedded-signing-request": {
+      "post": {
+        "summary": "Save embedded signing request (JWT authenticated)",
+        "description": "Save changes to a signing request when using embedded editor. Requires JWT authentication obtained from `/jwt/generate-signing-request`.",
+        "tags": [
+          "Signing Requests"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "companies_workspaces_signing_requests_id"
+                ],
+                "properties": {
+                  "companies_workspaces_signing_requests_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "fields": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Field"
+                    }
+                  },
+                  "recipients": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Recipient"
+                    }
+                  },
+                  "reminders": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Reminder"
+                    }
+                  }
+                }
+              },
+              "example": {
+                "companies_workspaces_signing_requests_id": "123e4567-e89b-12d3-a456-426614174000",
+                "fields": [],
+                "recipients": [],
+                "reminders": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signing request saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Signing request saved successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/send-embedded-signing-request": {
+      "post": {
+        "summary": "Send embedded signing request (JWT authenticated)",
+        "description": "Send a signing request to recipients when using embedded editor. Requires JWT authentication obtained from `/jwt/generate-signing-request`. The signing request must have at least one recipient and all required fields must be configured.",
+        "tags": [
+          "Signing Requests"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "companies_workspaces_signing_requests_id"
+                ],
+                "properties": {
+                  "companies_workspaces_signing_requests_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "ID of the signing request to send"
+                  }
+                }
+              },
+              "example": {
+                "companies_workspaces_signing_requests_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signing request sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "signing_request_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Signing request sent successfully",
+                  "signing_request_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/get-embedded-signing-request": {
+      "post": {
+        "summary": "Get embedded signing request data (JWT authenticated)",
+        "description": "Retrieve signing request data when using embedded editor. Requires JWT authentication obtained from `/jwt/generate-signing-request`. Returns the complete signing request including fields, recipients, and reminders.",
+        "tags": [
+          "Signing Requests"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "companies_workspaces_signing_requests_id"
+                ],
+                "properties": {
+                  "companies_workspaces_signing_requests_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "ID of the signing request to retrieve"
+                  }
+                }
+              },
+              "example": {
+                "companies_workspaces_signing_requests_id": "123e4567-e89b-12d3-a456-426614174000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signing request retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "signing_request": {
+                      "$ref": "#/components/schemas/SigningRequest"
+                    },
+                    "fields": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Field"
+                      }
+                    },
+                    "recipients": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Recipient"
+                      }
+                    },
+                    "reminders": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Reminder"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
           }
         }
       }

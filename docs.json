@@ -69,7 +69,10 @@
                   "api-reference/signing-requests/resend-signing-request-to-specific-recipients",
                   "api-reference/signing-requests/get-signing-request-fields",
                   "api-reference/signing-requests/get-signing-request-users",
-                  "api-reference/signing-requests/get-signing-request-reminders"
+                  "api-reference/signing-requests/get-signing-request-reminders",
+                  "api-reference/signing-requests/get-embedded-signing-request-data-jwt-authenticated",
+                  "api-reference/signing-requests/save-embedded-signing-request-jwt-authenticated",
+                  "api-reference/signing-requests/send-embedded-signing-request-jwt-authenticated"
                 ]
               },
               {
@@ -97,7 +100,9 @@
                 "group": "JWT Management",
                 "pages": [
                   "api-reference/jwt-management/generate-jwt-token",
-                  "api-reference/jwt-management/revoke-a-jwt-token"
+                  "api-reference/jwt-management/revoke-a-jwt-token",
+                  "api-reference/jwt-management/generate-jwt-token-for-signing-request",
+                  "api-reference/jwt-management/revoke-a-signing-request-jwt-token"
                 ]
               },
               {
