@@ -27,7 +27,7 @@ Each recipient must include:
 - `last_name` (required) - Recipient's last name  
 - `email` (required) - Valid email address
 - `designation` (required) - Role: `"Signer"`, `"CC"`, or `"Approver"` (currently only `"Signer"` is fully supported)
-- `order` (optional) - Signing order when `use_signing_order` is enabled
+- `order` (optional) - Signing order for sequential workflows
 
 Optional fields:
 - `phone_number`, `street_address`, `city`, `state_province`, `postal_code`, `country`, `title`, `company`
@@ -348,10 +348,7 @@ response = requests.patch(
     },
     json={
         "name": "Updated Contract Name",
-        "expiration_hours": 72,
-        "settings": {
-            "use_signing_order": True
-        }
+        "expiration_hours": 72
     }
 )
 
@@ -453,7 +450,7 @@ document.getElementById('signing-root').appendChild(iframe)
 
 ## Edge cases & tips
 
-- **Signing order**: If `use_signing_order` is true in document settings, ensure recipients have sequential `order` values (1, 2, 3...)
+- **Signing order**: Ensure recipients have sequential `order` values (1, 2, 3...) for sequential signing workflows
 - **Audit trail**: Download the audit trail via GET `/signing-requests/{id}/tracking` to see all user actions
 - **Download completed PDF**: Use GET `/signing-requests/{id}/download` after completion
 - **Webhooks**: Subscribe to events like `signing_request.completed` instead of polling (see [Webhooks guide](webhooks))
@@ -469,6 +466,6 @@ document.getElementById('signing-root').appendChild(iframe)
 
 ## Edge cases & tips
 
-- If you have multiple signers, ensure `order` is set when `use_signing_order` is true on the template/document.
+- For sequential signing workflows with multiple signers, ensure each recipient has a sequential `order` value (1, 2, 3...).
 - For audit and compliance, download the final PDF via GET /signing-requests/signing_request_id/download after completion.
 - Use webhooks (see the Webhooks guide) to react to signing events instead of polling.

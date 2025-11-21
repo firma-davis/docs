@@ -185,10 +185,7 @@
                 "summary": "Update properties",
                 "value": {
                   "name": "Updated Contract Name",
-                  "expiration_hours": 72,
-                  "settings": {
-                    "use_signing_order": true
-                  }
+                  "expiration_hours": 72
                 }
               },
               "update-recipient": {
@@ -665,11 +662,6 @@
       "SigningRequestSettings": {
         "type": "object",
         "properties": {
-          "use_signing_order": {
-            "type": "boolean",
-            "description": "Whether recipients must sign in order",
-            "default": true
-          },
           "allow_download": {
             "type": "boolean",
             "description": "Whether recipients can download the document",
@@ -694,7 +686,7 @@
           "email",
           "designation"
         ],
-        "description": "Recipient schema with auto-construction and mapping behaviors. **Name field**: Auto-constructed from first_name and last_name ('First Last' if both present, otherwise 'First'). Manual name values are overwritten. **Order assignment**: If use_signing_order is disabled AND no order provided, recipients are auto-assigned sequential orders (1, 2, 3...). If use_signing_order is enabled OR any recipient has explicit order, ALL recipients MUST have order. Order determines signing sequence when use_signing_order is true. **Custom fields**: Supports both flat structure (e.g., company_name at root) and nested structure (custom_fields object). Both formats are normalized internally. **Template field mapping**: When providing custom recipients for a template, fields are mapped from template users to custom recipients by matching designation+order (e.g., template Signer order 1 fields → custom recipient Signer order 1). **Temporary IDs**: For document-based creation, use temporary IDs (format: 'temp_1', 'temp_2', etc.) to reference recipients in fields and reminders before they're created.",
+        "description": "Recipient schema with auto-construction and mapping behaviors. **Name field**: Auto-constructed from first_name and last_name ('First Last' if both present, otherwise 'First'). Manual name values are overwritten. **Order assignment**: ALL recipients MUST have an explicit order value. Order determines the signing sequence, which is always enforced. Recipients must sign in order, with lower numbers signing first. **Custom fields**: Supports both flat structure (e.g., company_name at root) and nested structure (custom_fields object). Both formats are normalized internally. **Template field mapping**: When providing custom recipients for a template, fields are mapped from template users to custom recipients by matching designation+order (e.g., template Signer order 1 fields → custom recipient Signer order 1). **Temporary IDs**: For document-based creation, use temporary IDs (format: 'temp_1', 'temp_2', etc.) to reference recipients in fields and reminders before they're created.",
         "properties": {
           "id": {
             "type": "string",
@@ -732,7 +724,7 @@
           "order": {
             "type": "integer",
             "minimum": 1,
-            "description": "Signing order (only applies if use_signing_order is true)"
+            "description": "Signing sequence number. Recipients must sign in order, with lower numbers signing first. This field is required for all recipients."
           },
           "phone_number": {
             "type": "string",
@@ -2461,11 +2453,6 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Allow recipients to download the document"
-                      },
-                      "use_signing_order": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Enforce signing order"
                       }
                     }
                   }
@@ -2639,9 +2626,6 @@
                             "type": "boolean"
                           },
                           "allow_download": {
-                            "type": "boolean"
-                          },
-                          "use_signing_order": {
                             "type": "boolean"
                           }
                         }
@@ -2845,9 +2829,6 @@
                             "type": "boolean"
                           },
                           "allow_download": {
-                            "type": "boolean"
-                          },
-                          "use_signing_order": {
                             "type": "boolean"
                           }
                         }
@@ -3955,10 +3936,7 @@
                   "summary": "Update properties",
                   "value": {
                     "name": "Updated Contract Name",
-                    "expiration_hours": 72,
-                    "settings": {
-                      "use_signing_order": true
-                    }
+                    "expiration_hours": 72
                   }
                 },
                 "update-recipient": {
