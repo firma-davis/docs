@@ -100,8 +100,8 @@
               {
                 "group": "JWT Management",
                 "pages": [
-                  "api-reference/jwt-management/generate-jwt-token",
-                  "api-reference/jwt-management/revoke-a-jwt-token",
+                  "api-reference/jwt-management/generate-jwt-token-for-embedding-templates",
+                  "api-reference/jwt-management/revoke-template-jwt-token",
                   "api-reference/jwt-management/generate-jwt-token-for-signing-request",
                   "api-reference/jwt-management/revoke-a-signing-request-jwt-token"
                 ]
