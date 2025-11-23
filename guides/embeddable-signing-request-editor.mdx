@@ -123,39 +123,28 @@ def generate_signing_request_token(signing_request_id):
 <div id="signing-request-editor-container"></div>
 
 <script>
-  async function initializeEditor(signingRequestId) {
-    try {
-      // Get JWT from your backend endpoint
-      const jwt = await fetch('/your-backend-endpoint/generate-token?signingRequestId=' + signingRequestId)
-        .then(res => res.json())
-        .then(data => data.jwt);
-      
-      // Initialize the signing request editor
-      const editor = new FirmaSigningRequestEditor({
-        container: document.getElementById('signing-request-editor-container'),
-        jwt: jwt,
-        signingRequestId: signingRequestId,
-        theme: 'dark', // or 'light'
-        onSave: (data) => {
-          console.log('Signing request saved:', data);
-        },
-        onSend: (data) => {
-          console.log('Signing request sent:', data);
-        },
-        onError: (error) => {
-          console.error('Editor error:', error);
-        },
-        onLoad: (signingRequest) => {
-          console.log('Editor loaded successfully:', signingRequest);
-        }
-      });
-    } catch (error) {
-      console.error('Failed to initialize editor:', error);
-    }
-  }
+  // Assuming you've already fetched the JWT from your backend
+  const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...';
+  const signingRequestId = '08f72e3b-79a8-4eac-a268-b3f9efaf6573';
   
-  // Usage
-  initializeEditor('08f72e3b-79a8-4eac-a268-b3f9efaf6573');
+  // Initialize the signing request editor
+  const editor = new FirmaSigningRequestEditor({
+    container: '#signing-request-editor-container',
+    jwt: jwt,
+    signingRequestId: signingRequestId,
+    onSave: (data) => {
+      console.log('Signing request saved:', data);
+    },
+    onSend: (data) => {
+      console.log('Signing request sent:', data);
+    },
+    onError: (error) => {
+      console.error('Editor error:', error);
+    },
+    onLoad: (signingRequest) => {
+      console.log('Editor loaded successfully:', signingRequest);
+    }
+  });
 </script>
 ```
 
@@ -164,11 +153,10 @@ def generate_signing_request_token(signing_request_id):
 ```jsx
 import { useEffect, useRef, useState } from 'react';
 
-function SigningRequestEditorComponent({ signingRequestId }) {
+function SigningRequestEditorComponent({ signingRequestId, jwt }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [jwt, setJwt] = useState<string | null>(null);
 
   // Load the Firma Signing Request Editor library
   useEffect(() => {
@@ -186,21 +174,6 @@ function SigningRequestEditorComponent({ signingRequestId }) {
     };
   }, []);
 
-  // Fetch JWT token from your backend
-  useEffect(() => {
-    async function fetchToken() {
-      try {
-        const response = await fetch(`/your-backend-endpoint/generate-token?signingRequestId=${signingRequestId}`);
-        const data = await response.json();
-        setJwt(data.jwt);
-      } catch (error) {
-        console.error('Failed to fetch JWT:', error);
-      }
-    }
-    
-    fetchToken();
-  }, [signingRequestId]);
-
   // Initialize the editor when library and JWT are ready
   useEffect(() => {
     if (!isLoaded || !containerRef.current || !jwt) return;
@@ -209,7 +182,6 @@ function SigningRequestEditorComponent({ signingRequestId }) {
       container: containerRef.current,
       jwt: jwt,
       signingRequestId: signingRequestId,
-      theme: 'dark',
       onSave: (data) => console.log('Saved:', data),
       onSend: (data) => console.log('Sent:', data),
       onError: (error) => console.error('Error:', error),

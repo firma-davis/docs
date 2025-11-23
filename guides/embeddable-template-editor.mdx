@@ -32,9 +32,9 @@ Embed Firma's template editor inside your application using JWT authentication f
 
 ### Generate JWT token
 
-Generate a JWT token for a specific template using the `/jwt/generate` endpoint.
+Generate a JWT token for a specific template using the `/generate-template-token` endpoint.
 
-**Endpoint**: `POST /jwt/generate`
+**Endpoint**: `POST /generate-template-token`
 
 **Request body**:
 ```json
@@ -43,13 +43,12 @@ Generate a JWT token for a specific template using the `/jwt/generate` endpoint.
 }
 ```
 
-**Response (200 OK)**:
+**Response (201 Created)**:
 ```json
 {
-  "jwt": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "jwt_id": "jwt123-e89b-12d3-a456-426614174000",
+  "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
   "expires_at": "2024-04-20T10:00:00Z",
-  "template_id": "123e4567-e89b-12d3-a456-426614174000"
+  "jwt_record_id": "jwt123-e89b-12d3-a456-426614174000"
 }
 ```
 
@@ -76,7 +75,7 @@ Call the Firma API from your backend to generate a JWT token. Your backend endpo
 ```js
 // Example: Simple backend function to generate JWT
 async function generateTemplateToken(templateId) {
-  const response = await fetch('https://api.firma.dev/functions/v1/signing-request-api/jwt/generate', {
+  const response = await fetch('https://api.firma.dev/functions/v1/signing-request-api/generate-template-token', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${process.env.FIRMA_API_KEY}`,
@@ -88,7 +87,7 @@ async function generateTemplateToken(templateId) {
   })
   
   const data = await response.json()
-  return data.jwt
+  return data.token
 }
 ```
 
@@ -99,7 +98,7 @@ import requests
 
 def generate_template_token(template_id):
     response = requests.post(
-        'https://api.firma.dev/functions/v1/signing-request-api/jwt/generate',
+        'https://api.firma.dev/functions/v1/signing-request-api/generate-template-token',
         headers={
             'Authorization': f'Bearer {os.getenv("FIRMA_API_KEY")}',
             'Content-Type': 'application/json'
@@ -109,7 +108,7 @@ def generate_template_token(template_id):
         }
     )
     data = response.json()
-    return data['jwt']
+    return data['token']
 ```
 
 ### Frontend implementation — HTML / Vanilla JavaScript
@@ -122,36 +121,31 @@ def generate_template_token(template_id):
 <div id="template-editor-container"></div>
 
 <script>
-  async function initializeEditor(templateId) {
-    try {
-      // Get JWT from your backend endpoint
-      const jwt = await fetch('/your-backend-endpoint/generate-token?templateId=' + templateId)
-        .then(res => res.json())
-        .then(data => data.jwt);
-      
-      // Initialize the template editor
-      const editor = new FirmaTemplateEditor({
-        container: document.getElementById('template-editor-container'),
-        jwt: jwt,
-        templateId: templateId,
-        theme: 'dark', // or 'light'
-        onSave: (data) => {
-          console.log('Template saved:', data);
-        },
-        onError: (error) => {
-          console.error('Editor error:', error);
-        },
-        onLoad: () => {
-          console.log('Editor loaded successfully');
-        }
-      });
-    } catch (error) {
-      console.error('Failed to initialize editor:', error);
-    }
-  }
+  // Assuming you've already fetched the JWT from your backend
+  const jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...';
+  const templateId = '08f72e3b-79a8-4eac-a268-b3f9efaf6573';
   
-  // Usage
-  initializeEditor('08f72e3b-79a8-4eac-a268-b3f9efaf6573');
+  // Initialize the template editor
+  const editor = new FirmaTemplateEditor({
+    container: '#template-editor-container',
+    jwt: jwt,
+    templateId: templateId,
+    
+    // Optional configuration
+    width: '100%',        // Custom width (default: '100%')
+    height: '100vh',      // Custom height (default: '100vh')
+    
+    // Optional callbacks
+    onSave: (data) => {
+      console.log('Template saved:', data);
+    },
+    onError: (error) => {
+      console.error('Editor error:', error);
+    },
+    onLoad: (template) => {
+      console.log('Editor loaded successfully:', template);
+    }
+  });
 </script>
 ```
 
@@ -160,11 +154,10 @@ def generate_template_token(template_id):
 ```jsx
 import { useEffect, useRef, useState } from 'react';
 
-function TemplateEditorComponent({ templateId }) {
+function TemplateEditorComponent({ templateId, jwt }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [jwt, setJwt] = useState<string | null>(null);
 
   // Load the Firma Template Editor library
   useEffect(() => {
@@ -182,21 +175,6 @@ function TemplateEditorComponent({ templateId }) {
     };
   }, []);
 
-  // Fetch JWT token from your backend
-  useEffect(() => {
-    async function fetchToken() {
-      try {
-        const response = await fetch(`/your-backend-endpoint/generate-token?templateId=${templateId}`);
-        const data = await response.json();
-        setJwt(data.jwt);
-      } catch (error) {
-        console.error('Failed to fetch JWT:', error);
-      }
-    }
-    
-    fetchToken();
-  }, [templateId]);
-
   // Initialize the editor when library and JWT are ready
   useEffect(() => {
     if (!isLoaded || !containerRef.current || !jwt) return;
@@ -205,10 +183,17 @@ function TemplateEditorComponent({ templateId }) {
       container: containerRef.current,
       jwt: jwt,
       templateId: templateId,
-      theme: 'dark',
+      
+      // Optional configuration
+      theme: 'dark',        // 'light' | 'dark' (default: 'dark')
+      readOnly: false,      // Disable editing (default: false)
+      width: '100%',        // Custom width (default: '100%')
+      height: '100vh',      // Custom height (default: '100vh')
+      
+      // Optional callbacks
       onSave: (data) => console.log('Saved:', data),
       onError: (error) => console.error('Error:', error),
-      onLoad: () => console.log('Loaded')
+      onLoad: (template) => console.log('Loaded:', template)
     });
 
     return () => {
@@ -228,13 +213,16 @@ export default TemplateEditorComponent;
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `container` | HTMLElement | DOM element to mount the editor (required) |
+| `container` | HTMLElement \| string | DOM element or CSS selector to mount the editor (required) |
 | `jwt` | string | Authentication token from your backend (required) |
 | `templateId` | string | Template identifier (required) |
 | `theme` | `'dark'` \| `'light'` | Editor theme (default: `'dark'`) |
+| `readOnly` | boolean | Enable read-only mode (default: `false`) |
+| `height` | string | Container height (default: `'100vh'`) |
+| `width` | string | Container width (default: `'100%'`) |
 | `onSave` | function | Callback when template is saved |
 | `onError` | function | Callback for error handling |
-| `onLoad` | function | Callback when editor loads successfully |
+| `onLoad` | function | Callback when editor loads with template data |
 
 ## postMessage events (editor → host)
 
