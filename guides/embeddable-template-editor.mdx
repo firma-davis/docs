@@ -115,7 +115,7 @@ def generate_template_token(template_id):
 
 ```html
 <!-- Load the Firma Template Editor library -->
-<script src="https://app.firma.dev/embed/template-editor.js"></script>
+<script src="https://api.firma.dev/functions/v1/embed-proxy/template-editor.js"></script>
 
 <!-- Create a container for the editor -->
 <div id="template-editor-container"></div>
@@ -162,7 +162,7 @@ function TemplateEditorComponent({ templateId, jwt }) {
   // Load the Firma Template Editor library
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://app.firma.dev/embed/template-editor.js';
+    script.src = 'https://api.firma.dev/functions/v1/embed-proxy/template-editor.js';
     script.async = true;
     
     script.onload = () => setIsLoaded(true);

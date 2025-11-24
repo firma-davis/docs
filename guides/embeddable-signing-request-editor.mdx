@@ -117,7 +117,7 @@ def generate_signing_request_token(signing_request_id):
 
 ```html
 <!-- Load the Firma Signing Request Editor library -->
-<script src="https://app.firma.dev/embed/signing-request-editor.js"></script>
+<script src="https://api.firma.dev/functions/v1/embed-proxy/signing-request-editor.js"></script>
 
 <!-- Create a container for the editor -->
 <div id="signing-request-editor-container"></div>
@@ -161,7 +161,7 @@ function SigningRequestEditorComponent({ signingRequestId, jwt }) {
   // Load the Firma Signing Request Editor library
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://app.firma.dev/embed/signing-request-editor.js';
+    script.src = 'https://api.firma.dev/functions/v1/embed-proxy/signing-request-editor.js';
     script.async = true;
     
     script.onload = () => setIsLoaded(true);
