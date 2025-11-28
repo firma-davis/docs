@@ -212,6 +212,27 @@
                     "order": 2
                   }
                 }
+              },
+              "add-date-field": {
+                "summary": "Add date field with formatting",
+                "value": {
+                  "field": {
+                    "type": "date",
+                    "position": {
+                      "x": 70,
+                      "y": 45,
+                      "width": 15,
+                      "height": 3
+                    },
+                    "page_number": 1,
+                    "required": true,
+                    "recipient_id": "rec123-e89b-12d3-a456-426614174000",
+                    "date_signing_default": true,
+                    "format_rules": {
+                      "dateFormat": "MMMM dd, yyyy"
+                    }
+                  }
+                }
               }
             }
           }
@@ -487,6 +508,34 @@
           }
         }
       },
+      "DateFormatRules": {
+        "type": "object",
+        "description": "Formatting rules for date fields. Specifies how date values should be displayed and formatted.",
+        "properties": {
+          "dateFormat": {
+            "type": "string",
+            "description": "Date format pattern. Use predefined formats or custom patterns with: yyyy (4-digit year), MM (2-digit month), dd (2-digit day), MMMM (full month name), MMM (abbreviated month name), HH (24-hour), mm (minute), ss (second). Examples: 'MM/dd/yyyy' displays as 01/31/2024, 'MMMM dd, yyyy' displays as January 31, 2024.",
+            "enum": [
+              "MM/dd/yyyy",
+              "dd/MM/yyyy",
+              "yyyy-MM-dd",
+              "MMMM dd, yyyy",
+              "MMM dd, yyyy",
+              "dd MMMM yyyy"
+            ],
+            "default": "MM/dd/yyyy"
+          }
+        },
+        "example": {
+          "dateFormat": "MMMM dd, yyyy"
+        }
+      },
+      "FieldValidationRules": {
+        "type": "object",
+        "nullable": true,
+        "description": "Validation rules for field values. Reserved for future use - currently not enforced for any field types.",
+        "additionalProperties": true
+      },
       "TemplateField": {
         "type": "object",
         "properties": {
@@ -505,7 +554,13 @@
               "text",
               "signature",
               "date",
-              "checkbox"
+              "checkbox",
+              "dropdown",
+              "radio_buttons",
+              "number",
+              "text_area",
+              "file",
+              "initial"
             ],
             "description": "Type of the field"
           },
@@ -521,10 +576,60 @@
             "type": "number",
             "description": "Y coordinate of field position"
           },
+          "width": {
+            "type": "number",
+            "description": "Width of the field"
+          },
+          "height": {
+            "type": "number",
+            "description": "Height of the field"
+          },
           "page_number": {
             "type": "integer",
             "minimum": 1,
             "description": "Page number where the field is located"
+          },
+          "variable_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Variable name for field (used in templates)"
+          },
+          "dropdown_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "description": "Options for dropdown fields"
+          },
+          "date_default": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "description": "Default date value"
+          },
+          "date_signing_default": {
+            "type": "boolean",
+            "description": "Use signing date as default"
+          },
+          "multi_group_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Group ID for multi-instance fields (e.g., radio button groups)"
+          },
+          "format_rules": {
+            "$ref": "#/components/schemas/DateFormatRules",
+            "nullable": true,
+            "description": "Formatting rules - currently used for date fields to specify display format"
+          },
+          "validation_rules": {
+            "$ref": "#/components/schemas/FieldValidationRules"
+          },
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of assigned recipient"
           }
         }
       },
@@ -928,14 +1033,20 @@
             "description": "Group ID for multi-instance fields"
           },
           "format_rules": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Formatting rules for field value"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DateFormatRules"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ],
+            "nullable": true,
+            "description": "Formatting rules for field value. For date fields, use DateFormatRules schema with dateFormat property. Predefined formats: MM/dd/yyyy, dd/MM/yyyy, yyyy-MM-dd, MMMM dd yyyy, MMM dd yyyy, dd MMMM yyyy. Custom formats supported using yyyy (year), MM (month), dd (day), MMMM (full month name), MMM (abbreviated month), HH (hour), mm (minute), ss (second)."
           },
           "validation_rules": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Validation rules for field value"
+            "$ref": "#/components/schemas/FieldValidationRules"
           }
         }
       },
