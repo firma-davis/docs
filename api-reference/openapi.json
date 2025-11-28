@@ -722,7 +722,7 @@
           "email",
           "designation"
         ],
-        "description": "Recipient schema with auto-construction and mapping behaviors. **Name field**: Auto-constructed from first_name and last_name ('First Last' if both present, otherwise 'First'). Manual name values are overwritten. **Order assignment**: ALL recipients MUST have an explicit order value. Order determines the signing sequence, which is always enforced. Recipients must sign in order, with lower numbers signing first. **Custom fields**: Supports both flat structure (e.g., company_name at root) and nested structure (custom_fields object). Both formats are normalized internally. **Template field mapping**: When providing custom recipients for a template, fields are mapped from template users to custom recipients by matching designation+order (e.g., template Signer order 1 fields → custom recipient Signer order 1). **Temporary IDs**: For document-based creation, use temporary IDs (format: 'temp_1', 'temp_2', etc.) to reference recipients in fields and reminders before they're created.",
+        "description": "Recipient schema with auto-construction and mapping behaviors. **Name field**: Auto-constructed from first_name and last_name ('First Last' if both present, otherwise 'First'). Manual name values are overwritten. **Order assignment**: ALL recipients MUST have an explicit order value. Order determines the signing sequence, which is always enforced. Recipients must sign in order, with lower numbers signing first. **Custom fields**: Supports both flat structure (e.g., company_name at root) and nested structure (custom_fields object). Both formats are normalized internally. **Template field mapping**: When creating from a template with custom recipients, use template_user_id or order to match template users. Only user info (name, email, phone, etc.) can be updated - order and designation are inherited from template. **Temporary IDs**: For document-based creation, use temporary IDs (format: 'temp_1', 'temp_2', etc.) to reference recipients in fields and reminders before they're created.",
         "properties": {
           "id": {
             "type": "string",
@@ -731,6 +731,11 @@
           "_temp_id": {
             "type": "string",
             "description": "Temporary identifier for new recipients in PUT (comprehensive update) requests (e.g., 'temp_1'). Use this when creating new recipients alongside existing ones in comprehensive updates. Must start with 'temp_' and be unique within the request. Not used for POST (create) requests - use 'id' field instead."
+          },
+          "template_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "When creating from a template, the ID of the template user to update. If provided, this recipient's data will update the matching template user. If not provided, falls back to matching by order. Only user info (name, email, phone, address, title, company) can be updated - order and designation are always inherited from the template."
           },
           "first_name": {
             "type": "string",
@@ -1188,6 +1193,57 @@
                 "$ref": "#/components/schemas/Recipient",
                 "description": "Recipient to create (omit id) or update (include id). When updating first_name or last_name, the name field is automatically reconstructed using existing values from database for any field not provided. Result: 'First Last' if both exist, 'First' if only first_name."
               }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "template_id"
+            ],
+            "description": "Create signing request from a template",
+            "properties": {
+              "template_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "ID of the template to create signing request from. The document, fields, and default recipients will be copied from the template."
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 255,
+                "description": "Custom name for signing request (defaults to template name if not provided)"
+              },
+              "description": {
+                "type": "string",
+                "description": "Custom description (defaults to template description if not provided)"
+              },
+              "expiration_hours": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Override template expiration hours"
+              },
+              "recipients": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Recipient"
+                },
+                "description": "Optional recipient overrides. Use template_user_id (preferred) or order (fallback) to match template users. Only user info (first_name, last_name, email, phone_number, address fields, title, company) can be updated - order and designation are always inherited from template. Recipients not provided will use template defaults."
+              },
+              "settings": {
+                "$ref": "#/components/schemas/SigningRequestSettings",
+                "description": "Override template settings"
+              }
+            },
+            "example": {
+              "template_id": "21424147-11c0-43d5-ac5f-a1f7001b5607",
+              "name": "Presupuesto XXXX",
+              "recipients": [
+                {
+                  "template_user_id": "template-user-uuid-1",
+                  "first_name": "Toni",
+                  "last_name": "Campins",
+                  "email": "acampins@cocodin.com"
+                }
+              ]
             }
           }
         ]
