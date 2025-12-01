@@ -1266,43 +1266,55 @@
         "oneOf": [
           {
             "type": "object",
-            "description": "Update signing request properties only",
+            "required": [
+              "document"
+            ],
+            "description": "Create signing request from a PDF document",
             "properties": {
-              "name": {
-                "type": "string",
-                "maxLength": 255,
-                "description": "New name for signing request"
-              },
-              "description": {
-                "type": "string",
-                "description": "New description"
-              },
               "document": {
                 "type": "string",
                 "format": "byte",
-                "description": "Replace document with new base64-encoded PDF. Page count will be auto-extracted."
+                "description": "Base64-encoded PDF document. Page count will be auto-extracted."
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 255,
+                "description": "Name for the signing request"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description for the signing request"
               },
               "expiration_hours": {
                 "type": "integer",
                 "minimum": 1,
-                "description": "New expiration hours"
+                "default": 168,
+                "description": "Hours until the signing request expires (default: 168 = 7 days)"
+              },
+              "recipients": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Recipient"
+                },
+                "description": "Recipients for the signing request. Use temporary IDs (e.g., 'temp_1') in the id field to reference recipients in fields/reminders."
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Field"
+                },
+                "description": "Fields to place on the document. Use recipient_id to assign fields to recipients."
+              },
+              "reminders": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SigningRequestReminder"
+                },
+                "description": "Reminders to send to recipients"
               },
               "settings": {
                 "$ref": "#/components/schemas/SigningRequestSettings",
-                "description": "Update settings"
-              }
-            }
-          },
-          {
-            "type": "object",
-            "required": [
-              "recipient"
-            ],
-            "description": "Create or update a single recipient",
-            "properties": {
-              "recipient": {
-                "$ref": "#/components/schemas/Recipient",
-                "description": "Recipient to create (omit id) or update (include id). When updating first_name or last_name, the name field is automatically reconstructed using existing values from database for any field not provided. Result: 'First Last' if both exist, 'First' if only first_name."
+                "description": "Signing request settings"
               }
             }
           },
