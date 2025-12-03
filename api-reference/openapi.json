@@ -503,6 +503,17 @@
             "description": "Template description",
             "nullable": true
           },
+          "document_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Pre-signed URL to the PDF document. This is a time-limited signed URL for secure access - see document_url_expires_at for expiration time. Initial URLs are valid for 7 days; refreshed URLs are valid for 1 hour. Request a new template retrieval to get a fresh URL if expired."
+          },
+          "document_url_expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "ISO 8601 timestamp when the document_url will expire. After this time, the URL will return an access denied error. Fetch the template again to receive a fresh signed URL."
+          },
           "date_created": {
             "type": "string",
             "format": "date-time",
@@ -768,7 +779,13 @@
           "document_url": {
             "type": "string",
             "format": "uri",
-            "description": "URL to the PDF document"
+            "description": "Pre-signed URL to the PDF document. This is a time-limited signed URL for secure access - see document_url_expires_at for expiration time. Initial URLs are valid for 7 days; refreshed URLs are valid for 1 hour. Request a new signing request retrieval to get a fresh URL if expired."
+          },
+          "document_url_expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "ISO 8601 timestamp when the document_url will expire. After this time, the URL will return an access denied error. Fetch the signing request again to receive a fresh signed URL."
           },
           "document_page_count": {
             "type": "integer",
