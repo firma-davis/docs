@@ -233,6 +233,46 @@
                     }
                   }
                 }
+              },
+              "add-read-only-static-field": {
+                "summary": "Add read-only field with static value",
+                "description": "Creates a text field that displays a fixed value the signer cannot edit",
+                "value": {
+                  "field": {
+                    "type": "text",
+                    "position": {
+                      "x": 15,
+                      "y": 20,
+                      "width": 40,
+                      "height": 3
+                    },
+                    "page_number": 1,
+                    "required": false,
+                    "recipient_id": "rec123-e89b-12d3-a456-426614174000",
+                    "read_only": true,
+                    "read_only_value": "Contract #12345 - Acme Corporation"
+                  }
+                }
+              },
+              "add-read-only-prefilled-field": {
+                "summary": "Add read-only field with recipient data",
+                "description": "Creates a text field that auto-populates with the recipient's email address (signer cannot edit)",
+                "value": {
+                  "field": {
+                    "type": "text",
+                    "position": {
+                      "x": 15,
+                      "y": 30,
+                      "width": 30,
+                      "height": 3
+                    },
+                    "page_number": 1,
+                    "required": false,
+                    "recipient_id": "rec123-e89b-12d3-a456-426614174000",
+                    "read_only": true,
+                    "prefilled_data": "email"
+                  }
+                }
               }
             }
           }
@@ -630,6 +670,35 @@
             "type": "string",
             "format": "uuid",
             "description": "ID of assigned recipient"
+          },
+          "read_only": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this field is read-only (pre-filled before signing). When true, the signer cannot edit the field value."
+          },
+          "read_only_value": {
+            "type": "string",
+            "nullable": true,
+            "description": "Static value for read-only fields. Takes precedence over prefilled_data if both are specified. Only applicable when read_only is true."
+          },
+          "prefilled_data": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "first_name",
+              "last_name",
+              "full_name",
+              "email",
+              "phone_number",
+              "company",
+              "title",
+              "street_address",
+              "city",
+              "state_province",
+              "postal_code",
+              "country"
+            ],
+            "description": "User attribute to auto-populate when read_only is true. Value is pulled from the assigned recipient's data. Can also reference custom_fields keys defined on the recipient (not limited to enum values). Only applicable when read_only is true and read_only_value is not set."
           }
         }
       },
@@ -934,6 +1003,7 @@
           "position",
           "page_number"
         ],
+        "description": "Field definition for signing requests. **Read-only fields**: Set read_only=true to pre-fill a field value that signers cannot edit. Use read_only_value for static text, or prefilled_data to auto-populate from recipient attributes.",
         "properties": {
           "id": {
             "type": "string",
@@ -1047,6 +1117,35 @@
           },
           "validation_rules": {
             "$ref": "#/components/schemas/FieldValidationRules"
+          },
+          "read_only": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this field is read-only (pre-filled before signing). When true, the signer cannot edit the field value. Useful for displaying contract terms, recipient information, or other fixed data."
+          },
+          "read_only_value": {
+            "type": "string",
+            "nullable": true,
+            "description": "Static value for read-only fields. Takes precedence over prefilled_data if both are specified. Only applicable when read_only is true. Example: 'Contract #12345' or 'Acme Corporation'."
+          },
+          "prefilled_data": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "first_name",
+              "last_name",
+              "full_name",
+              "email",
+              "phone_number",
+              "company",
+              "title",
+              "street_address",
+              "city",
+              "state_province",
+              "postal_code",
+              "country"
+            ],
+            "description": "User attribute to auto-populate when read_only is true. Value is pulled from the assigned recipient's data at signing time. Can also reference custom_fields keys defined on the recipient (not limited to enum values). Only applicable when read_only is true and read_only_value is not set. Example: Set to 'email' to display the recipient's email address."
           }
         }
       },
