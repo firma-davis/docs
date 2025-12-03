@@ -129,6 +129,18 @@
       "anchors": []
     }
   },
+  "custom": {
+    "head": [
+      {
+        "tag": "script",
+        "attributes": {
+          "type": "text/javascript",
+          "src": "//script.crazyegg.com/pages/scripts/0130/5710.js",
+          "async": "async"
+        }
+      }
+    ]
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
