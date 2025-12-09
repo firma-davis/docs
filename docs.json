@@ -16,6 +16,7 @@
           {
             "group": "Starter guides",
             "pages": [
+              "guides/complete-setup-guide",
               "guides/creating-workspaces",
               "guides/workspace-settings",
               "guides/sending-signing-request",
