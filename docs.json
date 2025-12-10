@@ -37,88 +37,88 @@
               {
                 "group": "Workspaces",
                 "pages": [
-                  "api-reference/workspaces/list-workspaces",
-                  "api-reference/workspaces/create-a-new-workspace",
-                  "api-reference/workspaces/update-a-workspace",
-                  "api-reference/workspaces/partially-update-a-workspace"
+                  "api-reference/v01.00.01/workspaces/list-workspaces",
+                  "api-reference/v01.00.01/workspaces/create-a-new-workspace",
+                  "api-reference/v01.00.01/workspaces/update-a-workspace",
+                  "api-reference/v01.00.01/workspaces/partially-update-a-workspace"
                 ]
               },
               {
                 "group": "Templates",
                 "pages": [
-                  "api-reference/templates/list-templates",
-                  "api-reference/templates/create-template",
-                  "api-reference/templates/get-template",
-                  "api-reference/templates/comprehensive-template-update",
-                  "api-reference/templates/partially-update-template",
-                  "api-reference/templates/delete-a-template",
-                  "api-reference/templates/duplicate-template-into-signing-request",
-                  "api-reference/templates/get-template-fields",
-                  "api-reference/templates/get-template-users",
-                  "api-reference/templates/get-template-reminders"
+                  "api-reference/v01.00.01/templates/list-templates",
+                  "api-reference/v01.00.01/templates/create-template",
+                  "api-reference/v01.00.01/templates/get-template",
+                  "api-reference/v01.00.01/templates/comprehensive-template-update",
+                  "api-reference/v01.00.01/templates/partially-update-template",
+                  "api-reference/v01.00.01/templates/delete-a-template",
+                  "api-reference/v01.00.01/templates/duplicate-template-into-signing-request",
+                  "api-reference/v01.00.01/templates/get-template-fields",
+                  "api-reference/v01.00.01/templates/get-template-users",
+                  "api-reference/v01.00.01/templates/get-template-reminders"
                 ]
               },
               {
                 "group": "Signing Requests",
                 "pages": [
-                  "api-reference/signing-requests/list-signing-requests",
-                  "api-reference/signing-requests/create-signing-request",
-                  "api-reference/signing-requests/get-signing-request",
-                  "api-reference/signing-requests/comprehensive-update-signing-request",
-                  "api-reference/signing-requests/partially-update-signing-request",
-                  "api-reference/signing-requests/cancel-a-signing-request",
-                  "api-reference/signing-requests/send-signing-request",
-                  "api-reference/signing-requests/resend-signing-request-to-specific-recipients",
-                  "api-reference/signing-requests/get-signing-request-fields",
-                  "api-reference/signing-requests/get-signing-request-users",
-                  "api-reference/signing-requests/get-signing-request-reminders",
-                  "api-reference/signing-requests/get-embedded-signing-request-data-jwt-authenticated",
-                  "api-reference/signing-requests/save-embedded-signing-request-jwt-authenticated",
-                  "api-reference/signing-requests/send-embedded-signing-request-jwt-authenticated"
+                  "api-reference/v01.00.01/signing-requests/list-signing-requests",
+                  "api-reference/v01.00.01/signing-requests/create-signing-request",
+                  "api-reference/v01.00.01/signing-requests/get-signing-request",
+                  "api-reference/v01.00.01/signing-requests/comprehensive-update-signing-request",
+                  "api-reference/v01.00.01/signing-requests/partially-update-signing-request",
+                  "api-reference/v01.00.01/signing-requests/cancel-a-signing-request",
+                  "api-reference/v01.00.01/signing-requests/send-signing-request",
+                  "api-reference/v01.00.01/signing-requests/resend-signing-request-to-specific-recipients",
+                  "api-reference/v01.00.01/signing-requests/get-signing-request-fields",
+                  "api-reference/v01.00.01/signing-requests/get-signing-request-users",
+                  "api-reference/v01.00.01/signing-requests/get-signing-request-reminders",
+                  "api-reference/v01.00.01/signing-requests/get-embedded-signing-request-data-jwt-authenticated",
+                  "api-reference/v01.00.01/signing-requests/save-embedded-signing-request-jwt-authenticated",
+                  "api-reference/v01.00.01/signing-requests/send-embedded-signing-request-jwt-authenticated"
                 ]
               },
               {
                 "group": "Company",
                 "pages": [
-                  "api-reference/company/get-company-information",
-                  "api-reference/company/update-company-information",
-                  "api-reference/company/partially-update-company-information"
+                  "api-reference/v01.00.01/company/get-company-information",
+                  "api-reference/v01.00.01/company/update-company-information",
+                  "api-reference/v01.00.01/company/partially-update-company-information"
                 ]
               },
               {
                 "group": "Webhooks",
                 "pages": [
-                  "api-reference/webhooks/list-webhooks",
-                  "api-reference/webhooks/create-webhook",
-                  "api-reference/webhooks/get-webhook",
-                  "api-reference/webhooks/update-webhook",
-                  "api-reference/webhooks/delete-a-webhook",
-                  "api-reference/webhooks/test-a-webhook",
-                  "api-reference/webhooks/get-webhook-secret-rotation-status",
-                  "api-reference/webhooks/rotate-webhook-signing-secret"
+                  "api-reference/v01.00.01/webhooks/list-webhooks",
+                  "api-reference/v01.00.01/webhooks/create-webhook",
+                  "api-reference/v01.00.01/webhooks/get-webhook",
+                  "api-reference/v01.00.01/webhooks/update-webhook",
+                  "api-reference/v01.00.01/webhooks/delete-a-webhook",
+                  "api-reference/v01.00.01/webhooks/test-a-webhook",
+                  "api-reference/v01.00.01/webhooks/get-webhook-secret-rotation-status",
+                  "api-reference/v01.00.01/webhooks/rotate-webhook-signing-secret"
                 ]
               },
               {
                 "group": "JWT Management",
                 "pages": [
-                  "api-reference/jwt-management/generate-jwt-token-for-embedding-templates",
-                  "api-reference/jwt-management/revoke-template-jwt-token",
-                  "api-reference/jwt-management/generate-jwt-token-for-signing-request",
-                  "api-reference/jwt-management/revoke-a-signing-request-jwt-token"
+                  "api-reference/v01.00.01/jwt-management/generate-jwt-token-for-embedding-templates",
+                  "api-reference/v01.00.01/jwt-management/revoke-template-jwt-token",
+                  "api-reference/v01.00.01/jwt-management/generate-jwt-token-for-signing-request",
+                  "api-reference/v01.00.01/jwt-management/revoke-a-signing-request-jwt-token"
                 ]
               },
               {
                 "group": "Workspace Settings",
                 "pages": [
-                  "api-reference/workspace-settings/get-workspace-settings",
-                  "api-reference/workspace-settings/update-workspace-settings"
+                  "api-reference/v01.00.01/workspace-settings/get-workspace-settings",
+                  "api-reference/v01.00.01/workspace-settings/update-workspace-settings"
                 ]
               },
               {
                 "group": "Legacy",
                 "pages": [
-                  "api-reference/legacy/list-documents-legacy",
-                  "api-reference/legacy/create-document-legacy"
+                  "api-reference/v01.00.01/legacy/list-documents-legacy",
+                  "api-reference/v01.00.01/legacy/create-document-legacy"
                 ]
               }
             ]
