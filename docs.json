@@ -81,7 +81,7 @@
                     ]
                   },
                   {
-                    "group": "Company",
+                    "group": "Account/Company",
                     "pages": [
                       "api-reference/v01.00.01/company/get-company-information",
                       "api-reference/v01.00.01/company/update-company-information",
