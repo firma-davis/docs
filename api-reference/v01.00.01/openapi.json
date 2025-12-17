@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Firma Partner API",
-    "description": "RESTful API for document signing and template management.\n\n**Authentication**: All endpoints require API key authentication via the `Authorization` header. Use your API key directly without any prefix (e.g., `your-api-key`). The Bearer prefix is optional but not required.\n\n**Security Features**:\n- Input validation using Zod schemas with detailed field-level error messages\n- RSA-256 signed JWT tokens for embedded template access\n\n**Rate Limiting**: Rate limits are tiered based on operation type:\n- Read operations (GET): 200 requests per minute\n- Write operations (POST/PUT standard): 100 requests per minute\n- Webhook operations: 60 requests per minute\n- JWT generation: 120 requests per minute\n- Template duplication: 30 requests per minute\n- Signing request send: 60 requests per minute\n- Webhook secret rotation: 1 per hour (cooldown enforced)\n\nWhen rate limits are exceeded, the API returns a `429 Too Many Requests` response with headers:\n- `X-RateLimit-Limit`: Maximum requests per minute for this endpoint\n- `X-RateLimit-Remaining`: Requests remaining in current window\n- `X-RateLimit-Reset`: Unix timestamp when limit resets\n- `Retry-After`: Seconds until retry is allowed\n\n**Error Handling**: All errors return structured JSON responses with `error` (human-readable message), `code` (machine-readable identifier), and `details` (field-level validation errors when applicable).\n\n**Embedded Template Integration**: The Firma Template Editor can be embedded in your application using a standalone JavaScript library.\n\n```html\n<!-- Load the Firma Template Editor library -->\n<script src=\"https://api.firma.dev/functions/v1/embed-proxy/template-editor.js\"></script>\n\n<script>\n// Generate JWT token via API first\nfetch('https://api.firma.dev/functions/v1/signing-request-api/generate-template-token', {\n  method: 'POST',\n  headers: {\n    'Authorization': 'YOUR_API_KEY',\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    companies_workspaces_templates_id: 'template-id'\n  })\n})\n.then(res => res.json())\n.then(data => {\n  // Initialize editor with JWT token\n  window.FirmaTemplateEditor.init({\n    container: '#firma-editor-container',\n    jwt: data.token,\n    templateId: 'template-id',\n    theme: 'dark',\n    readOnly: false,\n    onSave: (savedData) => {\n      console.log('Template saved:', savedData);\n    },\n    onError: (error) => {\n      console.error('Editor error:', error);\n    },\n    onLoad: (template) => {\n      console.log('Template loaded:', template);\n    }\n  });\n});\n```",
+    "description": "RESTful API for document signing and template management.\n\n**Authentication**: All endpoints require API key authentication via the `Authorization` header. Use your API key directly without any prefix (e.g., `your-api-key`). The Bearer prefix is optional but not required.\n\n**Security Features**:\n- Input validation using Zod schemas with detailed field-level error messages\n- RSA-256 signed JWT tokens for embedded template access\n\n**Rate Limiting**: Rate limits are tiered based on operation type:\n- Read operations (GET): 200 requests per minute\n- Write operations (POST/PUT/PATCH/DELETE): 120 requests per minute\n- Webhook CRUD operations: 60 requests per minute\n- Webhook test: 10 requests per minute\n- API key regeneration/expiration: 1 request per minute\n- Webhook secret rotation: 1 request per minute\n\nWhen rate limits are exceeded, the API returns a `429 Too Many Requests` response with headers:\n- `X-RateLimit-Limit`: Maximum requests per minute for this endpoint\n- `X-RateLimit-Remaining`: Requests remaining in current window\n- `X-RateLimit-Reset`: Unix timestamp when limit resets\n- `Retry-After`: Seconds until retry is allowed\n\n**Error Handling**: All errors return structured JSON responses with `error` (human-readable message), `code` (machine-readable identifier), and `details` (field-level validation errors when applicable).\n\n**Embedded Template Integration**: The Firma Template Editor can be embedded in your application using a standalone JavaScript library.\n\n```html\n<!-- Load the Firma Template Editor library -->\n<script src=\"https://api.firma.dev/functions/v1/embed-proxy/template-editor.js\"></script>\n\n<script>\n// Generate JWT token via API first\nfetch('https://api.firma.dev/functions/v1/signing-request-api/generate-template-token', {\n  method: 'POST',\n  headers: {\n    'Authorization': 'YOUR_API_KEY',\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    companies_workspaces_templates_id: 'template-id'\n  })\n})\n.then(res => res.json())\n.then(data => {\n  // Initialize editor with JWT token\n  window.FirmaTemplateEditor.init({\n    container: '#firma-editor-container',\n    jwt: data.token,\n    templateId: 'template-id',\n    theme: 'dark',\n    readOnly: false,\n    onSave: (savedData) => {\n      console.log('Template saved:', savedData);\n    },\n    onError: (error) => {\n      console.error('Editor error:', error);\n    },\n    onLoad: (template) => {\n      console.log('Template loaded:', template);\n    }\n  });\n});\n```",
     "version": "1.0.0",
     "contact": {
       "name": "API Support",
@@ -1866,7 +1866,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -1977,7 +1977,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -2329,7 +2329,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -2500,7 +2500,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -2588,7 +2588,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -2650,6 +2650,242 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/workspaces/{id}/api-key/regenerate": {
+      "post": {
+        "summary": "Regenerate workspace API key",
+        "description": "Regenerates the API key for a workspace. Sets 24-hour expiration on existing active keys and creates a new key. Cannot be used on protected workspaces. Rate limited to 1 request per minute.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Workspace ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "API key regenerated successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 1 request per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Remaining requests in current window"
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Unix timestamp when rate limit resets"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "workspace_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "new_key": {
+                      "type": "string",
+                      "description": "The newly generated API key"
+                    },
+                    "expiring_keys": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "expires_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      },
+                      "description": "List of keys that were set to expire in 24 hours"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "API key regenerated. Old keys will expire in 24 hours.",
+                  "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "new_key": "firma_api_abc123xyz...",
+                  "expiring_keys": [
+                    {
+                      "id": "old-key-uuid",
+                      "expires_at": "2024-12-18T10:30:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot regenerate key for protected workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Cannot regenerate API key for protected workspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitError"
+          }
+        }
+      }
+    },
+    "/workspaces/{id}/api-key/expire": {
+      "post": {
+        "summary": "Expire pending API keys",
+        "description": "Immediately expires all pending API keys (those with expires_at set) for a workspace. Useful after verifying that the new key works correctly. Cannot be used on protected workspaces. Rate limited to 1 request per minute.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Workspace ID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pending keys expired successfully",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Rate limit: 1 request per minute"
+              },
+              "X-RateLimit-Remaining": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Remaining requests in current window"
+              },
+              "X-RateLimit-Reset": {
+                "schema": {
+                  "type": "integer"
+                },
+                "description": "Unix timestamp when rate limit resets"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "workspace_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "expired_count": {
+                      "type": "integer",
+                      "description": "Number of keys that were expired"
+                    },
+                    "expired_keys": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "description": "List of expired key IDs"
+                    }
+                  }
+                },
+                "example": {
+                  "message": "Expired 1 pending API key(s)",
+                  "workspace_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "expired_count": 1,
+                  "expired_keys": [
+                    "old-key-uuid"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot expire keys for protected workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Cannot expire API keys for protected workspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
           },
           "404": {
             "$ref": "#/components/responses/NotFoundError"
@@ -2888,7 +3124,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -3138,7 +3374,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -3489,7 +3725,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -3555,7 +3791,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -3913,7 +4149,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 30 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -4170,7 +4406,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -4395,7 +4631,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -4485,7 +4721,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -5039,7 +5275,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -5165,7 +5401,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -5825,7 +6061,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 60 requests per minute"
+                "description": "Rate limit: 10 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -5892,7 +6128,7 @@
     "/webhooks/rotate-secret": {
       "post": {
         "summary": "Rotate webhook signing secret",
-        "description": "Generates a new webhook signing secret for the company. The old secret remains valid for 7 days to allow graceful migration. Rate limited to 1 request per hour.",
+        "description": "Generates a new webhook signing secret for the company. The old secret remains valid for 7 days to allow graceful migration. Rate limited to 1 request per minute.",
         "tags": [
           "Webhooks"
         ],
@@ -5909,7 +6145,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 1 request per hour"
+                "description": "Rate limit: 1 request per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -5956,7 +6192,7 @@
             "$ref": "#/components/responses/UnauthorizedError"
           },
           "429": {
-            "description": "Rate limit exceeded (1 rotation per hour)",
+            "description": "Rate limit exceeded (1 rotation per minute)",
             "content": {
               "application/json": {
                 "schema": {
@@ -6849,7 +7085,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
@@ -7002,7 +7238,7 @@
                 "schema": {
                   "type": "integer"
                 },
-                "description": "Rate limit: 100 requests per minute"
+                "description": "Rate limit: 120 requests per minute"
               },
               "X-RateLimit-Remaining": {
                 "schema": {
