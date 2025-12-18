@@ -24,6 +24,7 @@
                   "guides/creating-workspaces",
                   "guides/workspace-settings",
                   "guides/sending-signing-request",
+                  "guides/rate-limits",
 
           {
             "group": "Embeddables",
