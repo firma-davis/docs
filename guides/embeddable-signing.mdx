@@ -189,7 +189,7 @@ window.addEventListener('message', (event) => {
 ## Security best practices
 
 <Warning>
-**Never expose API keys in frontend code.** Always fetch signing user IDs through a secure backend endpoint.
+  **Never expose API keys in frontend code.** Always fetch signing user IDs through a secure backend endpoint.
 </Warning>
 
 ### ✅ Do's
@@ -204,20 +204,9 @@ window.addEventListener('message', (event) => {
 - ❌ Don't expose API keys in client code
 - ❌ Don't trust postMessage data without origin validation
 
-## Rate limits
+## Rate Limits
 
-**Get signing request users**: 200 requests per minute per API key
-
-```
-X-RateLimit-Limit: 200
-X-RateLimit-Remaining: 195
-X-RateLimit-Reset: 1729180800
-```
-
-For high-volume applications:
-- Cache signing user IDs (they don't change)
-- Use webhooks instead of polling for status (60 req/min)
-- Implement proper error handling for 429 responses
+See the guide on [Rate Limits](rate-limits).
 
 ## Webhook integration
 
@@ -251,6 +240,7 @@ See the [Webhooks guide](webhooks) for complete implementation details.
 ### Iframe not loading
 
 **Possible causes**:
+
 - Invalid `signing_request_user_id`
 - Recipient already completed signing
 - Signing request was cancelled or expired
@@ -260,16 +250,19 @@ See the [Webhooks guide](webhooks) for complete implementation details.
 ### postMessage events not received
 
 **Possible causes**:
+
 - Origin validation blocking messages
 - Event listener not attached before iframe loads
 
-**Solution**: 
+**Solution**:
+
 - Check origin is exactly `https://app.firma.dev`
 - Attach listener before creating iframe
 
 ### 403 Forbidden when fetching signing request
 
 **Possible causes**:
+
 - User doesn't have access to the signing request
 - API key lacks required permissions
 
