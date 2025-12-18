@@ -1,6 +1,8 @@
 ---
 title: "Rate Limits"
-description: "All API endpoints are rate-limited to ensure fair usage and system stability. Rate limits are enforced per API key (this means per workspace) and vary by operation type."
+description: "Firma.dev is designed for very high volume e-signing API usage. Each Firma.dev account may have unlimited workspaces with unlimited API keys, providing horizontal scalability.
+
+All API endpoints are rate-limited to ensure fair usage and system stability. Rate limits are enforced per API key (this means per workspace) and vary by operation type."
 icon: "wave-pulse"
 ---
 
@@ -15,7 +17,7 @@ icon: "wave-pulse"
 | **API Key Regeneration/Expiration**          | 1 request/min    | Regenerate or expire workspace API keys                                              |
 | **Webhook Secret Rotation**                  | 1 request/min    | Rotate webhook signing secret                                                        |
 
-For example, on the table above, you may have 200 GET's per minute per API key. Each workspace has it's own API key.
+For example, on the table above, you may have 200 GET's per minute per API key. Each [workspace](creating-workspaces) has it's own API key.
 
 ### Rate Limit Headers
 
