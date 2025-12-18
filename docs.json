@@ -24,10 +24,7 @@
                   "guides/creating-workspaces",
                   "guides/workspace-settings",
                   "guides/sending-signing-request",
-                  "guides/rate-limits",
-                  "guides/webhooks",
-
-          {
+                            {
             "group": "Embeddables",
             "expanded": true,
             "icon": "anchor",
@@ -36,7 +33,11 @@
               "guides/embeddable-signing-request-editor",
               "guides/embeddable-signing"
             ]
-          }
+          },
+                  "guides/rate-limits",
+                  "guides/webhooks"
+
+
                 ]
               }
             ]
