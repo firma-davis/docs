@@ -30,9 +30,9 @@
             "expanded": true,
             "icon": "anchor",
             "pages": [
-              "embeddable-template-editor",
-              "embeddable-signing-request-editor",
-              "embeddable-signing"
+              "guides/embeddable-template-editor",
+              "guides/embeddable-signing-request-editor",
+              "guides/embeddable-signing"
             ]
           }
                 ]
