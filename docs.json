@@ -25,6 +25,7 @@
                   "guides/workspace-settings",
                   "guides/sending-signing-request",
                   "guides/rate-limits",
+                  "guides/webhooks",
 
           {
             "group": "Embeddables",
