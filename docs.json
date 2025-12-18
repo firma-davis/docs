@@ -27,7 +27,7 @@
 
           {
             "group": "Embeddables",
-            "expanded": false,
+            "expanded": true,
             "icon": "anchor",
             "pages": [
               "embeddable-template-editor",
