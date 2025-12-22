@@ -1,7 +1,6 @@
 ---
 title: "Embeddable template editor"
 description: "Embed the template editor in your product with secure JWT authentication."
-icon: "file-pen"
 ---
 
 # Embeddable template editor
@@ -23,7 +22,7 @@ Embed Firma's template editor inside your application using JWT authentication f
 4. The token expires automatically (configurable expiration)
 
 <Note>
-**Rate limit**: JWT endpoints support **120 requests per minute per API key** for high-volume applications.
+  **Rate limit**: JWT endpoints support **120 requests per minute per API key** for high-volume applications.
 </Note>
 
 ---
@@ -37,6 +36,7 @@ Generate a JWT token for a specific template using the `/generate-template-token
 **Endpoint**: `POST /generate-template-token`
 
 **Request body**:
+
 ```json
 {
   "companies_workspaces_templates_id": "123e4567-e89b-12d3-a456-426614174000"
@@ -44,6 +44,7 @@ Generate a JWT token for a specific template using the `/generate-template-token
 ```
 
 **Response (201 Created)**:
+
 ```json
 {
   "token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -53,6 +54,7 @@ Generate a JWT token for a specific template using the `/generate-template-token
 ```
 
 **Rate limit headers**:
+
 ```
 X-RateLimit-Limit: 120
 X-RateLimit-Remaining: 119
@@ -64,7 +66,7 @@ X-RateLimit-Reset: 1729180800
 ## Implementation guide
 
 <Warning>
-**Security**: Never expose your API key in client-side code. Always generate JWT tokens from your secure backend.
+  **Security**: Never expose your API key in client-side code. Always generate JWT tokens from your secure backend.
 </Warning>
 
 ### Backend: Generate JWT token
@@ -72,6 +74,7 @@ X-RateLimit-Reset: 1729180800
 Call the Firma API from your backend to generate a JWT token. Your backend endpoint should accept a template ID and return the JWT to your frontend.
 
 **Node.js example**:
+
 ```js
 // Example: Simple backend function to generate JWT
 async function generateTemplateToken(templateId) {
@@ -92,6 +95,7 @@ async function generateTemplateToken(templateId) {
 ```
 
 **Python example**:
+
 ```py
 import os
 import requests
@@ -211,25 +215,25 @@ export default TemplateEditorComponent;
 
 ### Configuration Options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `container` | HTMLElement \| string | DOM element or CSS selector to mount the editor (required) |
-| `jwt` | string | Authentication token from your backend (required) |
-| `templateId` | string | Template identifier (required) |
-| `theme` | `'dark'` \| `'light'` | Editor theme (default: `'dark'`) |
-| `readOnly` | boolean | Enable read-only mode (default: `false`) |
-| `height` | string | Container height (default: `'100vh'`) |
-| `width` | string | Container width (default: `'100%'`) |
-| `onSave` | function | Callback when template is saved |
-| `onError` | function | Callback for error handling |
-| `onLoad` | function | Callback when editor loads with template data |
+| Option       | Type                  | Description                                                |
+| ------------ | --------------------- | ---------------------------------------------------------- |
+| `container`  | HTMLElement \| string | DOM element or CSS selector to mount the editor (required) |
+| `jwt`        | string                | Authentication token from your backend (required)          |
+| `templateId` | string                | Template identifier (required)                             |
+| `theme`      | `'dark'` \| `'light'` | Editor theme (default: `'dark'`)                           |
+| `readOnly`   | boolean               | Enable read-only mode (default: `false`)                   |
+| `height`     | string                | Container height (default: `'100vh'`)                      |
+| `width`      | string                | Container width (default: `'100%'`)                        |
+| `onSave`     | function              | Callback when template is saved                            |
+| `onError`    | function              | Callback for error handling                                |
+| `onLoad`     | function              | Callback when editor loads with template data              |
 
 ## postMessage events (editor → host)
 
 Firma's editor will emit postMessage events for important lifecycle actions. Below is a recommended, minimal event schema you can implement for reacting to editor saves and publishes. If you have a canonical schema in your platform, replace these with your official event names.
 
 <Tip>
-Use these events to track editor activity without making additional API calls, helping you stay within rate limits.
+  Use these events to track editor activity without making additional API calls, helping you stay within rate limits.
 </Tip>
 
 Event envelope (window.postMessage payload):
@@ -282,6 +286,7 @@ JWT tokens are generated with sufficient expiration time for typical editing ses
 ### Automatic expiration
 
 JWT tokens expire automatically based on the `expires_at` timestamp. After expiration:
+
 - The embedded editor will reject the token
 - Users must request a new token to continue
 - No API call needed — tokens expire passively
@@ -290,33 +295,20 @@ JWT tokens expire automatically based on the `expires_at` timestamp. After expir
 
 ## Rate limiting
 
-JWT endpoints support **120 requests per minute per API key**.
-
-**Rate limit headers**:
-```
-X-RateLimit-Limit: 120
-X-RateLimit-Remaining: 115
-X-RateLimit-Reset: 1729180800
-```
-
-If you exceed the rate limit (429 response):
-- Cache tokens and reuse them until expiration
-- Implement exponential backoff for retries
-- Monitor `X-RateLimit-Remaining` header
-- Generate tokens on-demand, not preemptively
+See the guide on [Rate Limits](rate-limits).
 
 ---
 
 ## Security best practices
 
 <Warning>
-**Never expose your API key in client-side code.** Always generate JWT tokens from a secure server endpoint.
+  **Never expose your API key in client-side code.** Always generate JWT tokens from a secure server endpoint.
 </Warning>
 
 ### ✅ Do's
 
 - ✅ Generate tokens from your backend server
-- ✅ Monitor rate limits (120 requests/minute)
+- ✅ Monitor rate limits
 - ✅ Use HTTPS for all API requests
 
 ### ❌ Don'ts
@@ -334,7 +326,8 @@ If you exceed the rate limit (429 response):
 
 **Symptom**: Editor shows "Token expired" or authentication error
 
-**Solution**: 
+**Solution**:
+
 - Implement token refresh before expiration
 - Generate a new token and reload the iframe
 - Check system clock synchronization
@@ -344,6 +337,7 @@ If you exceed the rate limit (429 response):
 **Symptom**: JWT generation fails with 401
 
 **Possible causes**:
+
 - Invalid or missing API key
 - API key doesn't have required permissions
 - API key is disabled
@@ -355,6 +349,7 @@ If you exceed the rate limit (429 response):
 **Symptom**: Template not found when generating JWT
 
 **Possible causes**:
+
 - Template ID doesn't exist
 - Template belongs to different workspace
 - Template was deleted
@@ -366,6 +361,7 @@ If you exceed the rate limit (429 response):
 **Symptom**: 429 Too Many Requests
 
 **Solution**:
+
 - Implement token caching
 - Increase token expiration time
 - Wait for rate limit reset (check `X-RateLimit-Reset` header)

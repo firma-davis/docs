@@ -24,10 +24,20 @@
                   "guides/creating-workspaces",
                   "guides/workspace-settings",
                   "guides/sending-signing-request",
-                  "guides/embeddable-template-editor",
-                  "guides/embeddable-signing-request-editor",
-                  "guides/embeddable-signing",
+                            {
+            "group": "Embeddables",
+            "expanded": true,
+            "icon": "anchor",
+            "pages": [
+              "guides/embeddable-template-editor",
+              "guides/embeddable-signing-request-editor",
+              "guides/embeddable-signing"
+            ]
+          },
+                  "guides/rate-limits",
                   "guides/webhooks"
+
+
                 ]
               }
             ]

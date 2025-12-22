@@ -1,6 +1,6 @@
 ---
 title: "Workspace Settings"
-icon: "gear"
+icon: "briefcase"
 description: "Configure workspace-level settings including email templates, team information, and timezone preferences."
 ---
 
@@ -16,9 +16,7 @@ Workspace settings allow you to customize email templates, team contact informat
 - **Multi-tenant applications**: Separate settings per workspace for white-label solutions
 
 <Note>
-**Rate limits** (per API key):
-- GET requests: **200 requests per minute**
-- PUT requests: **100 requests per minute**
+  See the guide on [Rate Limits](rate-limits).
 </Note>
 
 ---
@@ -429,11 +427,13 @@ function WorkspaceSettings({ workspaceId }) {
 ### Best practices
 
 **Email header** (max 255 characters):
+
 - Keep it concise and action-oriented
 - Clearly state the purpose ("Sign your agreement", "Review document")
 - Avoid generic text like "You have a notification"
 
 **Email body** (max 2000 characters):
+
 - Explain what the recipient needs to do
 - Include support contact information
 - Set expectations (urgency, deadline if applicable)
@@ -442,24 +442,28 @@ function WorkspaceSettings({ workspaceId }) {
 ### Example templates
 
 **Professional services**:
+
 ```
 Header: "Action Required: Review and Sign Your Contract"
 Body: "Thank you for choosing our services. Please review and sign the attached contract at your earliest convenience. If you have any questions or concerns, please contact us at contracts@company.com or call (555) 123-4567."
 ```
 
 **Real estate**:
+
 ```
 Header: "Your Property Documents Are Ready to Sign"
 Body: "Your documents are ready for electronic signature. Please review carefully before signing. Contact your agent at agent@realty.com if you need clarification on any terms."
 ```
 
 **HR onboarding**:
+
 ```
 Header: "Welcome to [Company]! Complete Your Onboarding Documents"
 Body: "Welcome to the team! As part of your onboarding, please review and sign the attached documents. If you have questions, reach out to hr@company.com. We're excited to have you aboard!"
 ```
 
 **Generic/flexible**:
+
 ```
 Header: "Document Ready for Your Signature"
 Body: "A document requires your signature. Please review the contents and sign electronically. Contact us at support@company.com with any questions."
@@ -472,6 +476,7 @@ Body: "A document requires your signature. Please review the contents and sign e
 Workspace settings support all IANA timezone identifiers. Common timezones:
 
 ### United States
+
 - `America/New_York` - Eastern Time
 - `America/Chicago` - Central Time
 - `America/Denver` - Mountain Time
@@ -480,6 +485,7 @@ Workspace settings support all IANA timezone identifiers. Common timezones:
 - `Pacific/Honolulu` - Hawaii Time
 
 ### Europe
+
 - `Europe/London` - GMT/BST
 - `Europe/Paris` - Central European Time
 - `Europe/Berlin` - Central European Time
@@ -487,6 +493,7 @@ Workspace settings support all IANA timezone identifiers. Common timezones:
 - `Europe/Rome` - Central European Time
 
 ### Asia Pacific
+
 - `Asia/Tokyo` - Japan Standard Time
 - `Asia/Shanghai` - China Standard Time
 - `Asia/Singapore` - Singapore Time
@@ -494,6 +501,7 @@ Workspace settings support all IANA timezone identifiers. Common timezones:
 - `Australia/Sydney` - Australian Eastern Time
 
 ### Americas
+
 - `America/Toronto` - Eastern Time (Canada)
 - `America/Vancouver` - Pacific Time (Canada)
 - `America/Mexico_City` - Central Time (Mexico)
@@ -536,6 +544,7 @@ If you exceed the limit:
 ```
 
 **Best practices**:
+
 - Implement client-side caching
 - Debounce frequent updates
 - Check `X-RateLimit-Remaining` before making requests
@@ -691,11 +700,13 @@ async function createWorkspace(name, ownerId) {
 **Symptom**: Updated settings don't appear in signing emails
 
 **Possible causes**:
+
 - Email template cache not cleared
 - Wrong workspace ID used
 - Updates didn't save (check API response)
 
 **Solution**:
+
 - Verify update was successful (check 200 response)
 - Test with a new signing request (not existing draft)
 - Check workspace ID matches signing request
@@ -717,9 +728,14 @@ async function createWorkspace(name, ownerId) {
 **Symptom**: 429 errors when updating settings
 
 **Solution**:
+
 - Implement debouncing on form inputs
 - Cache settings client-side
 - Wait for `X-RateLimit-Reset` before retrying
+
+<Note>
+  See the guide on [Rate Limits](rate-limits).
+</Note>
 
 ---
 
@@ -728,15 +744,18 @@ async function createWorkspace(name, ownerId) {
 For complete details on workspace operations, see:
 
 ### Workspace Management
+
 - [List Workspaces](../api-reference/v01.00.01/workspaces/list-workspaces) — Get all workspaces (100 req/min)
 - [Create Workspace](../api-reference/v01.00.01/workspaces/create-a-new-workspace) — Create new workspace (100 req/min)
 - [Update Workspace](../api-reference/v01.00.01/workspaces/update-a-workspace) — Update workspace details (100 req/min)
 
 ### Workspace Settings
+
 - [Get Workspace Settings](../api-reference/v01.00.01/workspace-settings/get-workspace-settings) — Retrieve current settings (200 req/min)
 - [Update Workspace Settings](../api-reference/v01.00.01/workspace-settings/update-workspace-settings) — Update email templates and preferences (100 req/min)
 
 ### Related Endpoints
+
 - [Generate JWT Token](../api-reference/v01.00.01/jwt-management/generate-jwt-token) — For embedded template editor (120 req/min)
 - [Create Template](../api-reference/v01.00.01/templates/create-template) — Create templates per workspace (100 req/min)
 - [Create Signing Request](../api-reference/v01.00.01/signing-requests/create-signing-request) — Send documents with workspace branding (100 req/min)
