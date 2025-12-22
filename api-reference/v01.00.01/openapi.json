@@ -908,6 +908,26 @@
             "type": "boolean",
             "description": "Whether the signing request can be edited before sending",
             "default": false
+          },
+          "send_signing_email": {
+            "type": "boolean",
+            "description": "Whether to send signing request notification emails to signers",
+            "default": true
+          },
+          "send_finish_email": {
+            "type": "boolean",
+            "description": "Whether to send completion email when all signers finish",
+            "default": true
+          },
+          "send_expiration_email": {
+            "type": "boolean",
+            "description": "Whether to send expiration notification email when request expires",
+            "default": true
+          },
+          "send_cancellation_email": {
+            "type": "boolean",
+            "description": "Whether to send cancellation notification email when request is cancelled",
+            "default": true
           }
         }
       },
