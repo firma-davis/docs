@@ -598,17 +598,14 @@
       },
       "TemplateField": {
         "type": "object",
+        "description": "A field placed on a template document",
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid",
             "description": "Unique identifier for the field"
           },
-          "field_name": {
-            "type": "string",
-            "description": "Name of the field"
-          },
-          "field_type": {
+          "type": {
             "type": "string",
             "enum": [
               "text",
@@ -620,7 +617,7 @@
               "number",
               "text_area",
               "file",
-              "initial"
+              "initials"
             ],
             "description": "Type of the field"
           },
@@ -628,31 +625,44 @@
             "type": "boolean",
             "description": "Whether the field is required"
           },
-          "position_x": {
-            "type": "number",
-            "description": "X coordinate of field position"
-          },
-          "position_y": {
-            "type": "number",
-            "description": "Y coordinate of field position"
-          },
-          "width": {
-            "type": "number",
-            "description": "Width of the field"
-          },
-          "height": {
-            "type": "number",
-            "description": "Height of the field"
-          },
-          "page_number": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Page number where the field is located"
+          "recipient_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "ID of assigned recipient"
           },
           "variable_name": {
             "type": "string",
             "nullable": true,
             "description": "Variable name for field (used in templates)"
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and dimensions of the field on the document",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "X coordinate of field position"
+              },
+              "y": {
+                "type": "number",
+                "description": "Y coordinate of field position"
+              },
+              "width": {
+                "type": "number",
+                "description": "Width of the field"
+              },
+              "height": {
+                "type": "number",
+                "description": "Height of the field"
+              }
+            }
+          },
+          "page_number": {
+            "type": "integer",
+            "minimum": 1,
+            "nullable": true,
+            "description": "Page number where the field is located"
           },
           "dropdown_options": {
             "type": "array",
@@ -662,21 +672,15 @@
             "nullable": true,
             "description": "Options for dropdown fields"
           },
-          "date_default": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "description": "Default date value"
-          },
-          "date_signing_default": {
-            "type": "boolean",
-            "description": "Use signing date as default"
-          },
           "multi_group_id": {
             "type": "string",
             "format": "uuid",
             "nullable": true,
-            "description": "Group ID for multi-instance fields (e.g., radio button groups)"
+            "description": "Group ID for radio button groups"
+          },
+          "date_signing_default": {
+            "type": "boolean",
+            "description": "Use signing date as default for date fields"
           },
           "format_rules": {
             "$ref": "#/components/schemas/DateFormatRules",
@@ -686,39 +690,15 @@
           "validation_rules": {
             "$ref": "#/components/schemas/FieldValidationRules"
           },
-          "recipient_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "ID of assigned recipient"
-          },
           "read_only": {
             "type": "boolean",
             "default": false,
-            "description": "Whether this field is read-only (pre-filled before signing). When true, the signer cannot edit the field value."
+            "description": "Whether this field is read-only (pre-filled before signing)"
           },
           "read_only_value": {
             "type": "string",
             "nullable": true,
-            "description": "Static value for read-only fields. Takes precedence over prefilled_data if both are specified. Only applicable when read_only is true."
-          },
-          "prefilled_data": {
-            "type": "string",
-            "nullable": true,
-            "enum": [
-              "first_name",
-              "last_name",
-              "full_name",
-              "email",
-              "phone_number",
-              "company",
-              "title",
-              "street_address",
-              "city",
-              "state_province",
-              "postal_code",
-              "country"
-            ],
-            "description": "User attribute to auto-populate when read_only is true. Value is pulled from the assigned recipient's data. Can also reference custom_fields keys defined on the recipient (not limited to enum values). Only applicable when read_only is true and read_only_value is not set."
+            "description": "Static value for read-only fields"
           }
         }
       },
@@ -1049,12 +1029,17 @@
           "position",
           "page_number"
         ],
-        "description": "Field definition for signing requests. **Read-only fields**: Set read_only=true to pre-fill a field value that signers cannot edit. Use read_only_value for static text, or prefilled_data to auto-populate from recipient attributes.",
+        "description": "Field definition for signing requests. **Read-only fields**: Set read_only=true to pre-fill a field value that signers cannot edit. Use read_only_value for static text, or prefilled_data to auto-populate from recipient attributes. **Template-based field merging**: When creating from a template with fields array, use template_field_id (preferred) or variable_name (fallback) to match template fields. Only provided properties override template defaults (partial update). Fields not matched are ignored.",
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid",
             "description": "Unique identifier (include for updates, omit for new fields)"
+          },
+          "template_field_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Template field ID to match for partial updates (template-based creation only). Use this to identify which template field to override. Takes precedence over variable_name for matching."
           },
           "type": {
             "type": "string",
@@ -1122,7 +1107,7 @@
             "type": "string",
             "maxLength": 100,
             "nullable": true,
-            "description": "Variable name for field (used in templates)"
+            "description": "Variable name for field (used in templates). Also used as fallback for field matching in template-based creation when template_field_id is not provided."
           },
           "dropdown_options": {
             "type": "array",
@@ -1308,15 +1293,23 @@
       },
       "SigningRequestField": {
         "type": "object",
+        "description": "Field associated with a signing request, containing position, type, and value information",
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid",
             "description": "Unique identifier for the field"
           },
-          "field_name": {
+          "companies_workspaces_signing_requests_id": {
             "type": "string",
-            "description": "Name of the field"
+            "format": "uuid",
+            "description": "ID of the signing request this field belongs to"
+          },
+          "companies_workspaces_signing_requests_users_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "ID of the recipient assigned to this field"
           },
           "field_type": {
             "type": "string",
@@ -1324,22 +1317,139 @@
               "text",
               "signature",
               "date",
-              "checkbox"
+              "checkbox",
+              "initials",
+              "dropdown",
+              "radio"
             ],
             "description": "Type of the field"
           },
-          "field_value": {
+          "required": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "Whether the field is required (0 = no, 1 = yes)"
+          },
+          "x_postion": {
+            "type": "number",
+            "nullable": true,
+            "description": "X position of the field on the document (note: column name has typo)"
+          },
+          "y_position": {
+            "type": "number",
+            "nullable": true,
+            "description": "Y position of the field on the document"
+          },
+          "width": {
+            "type": "number",
+            "nullable": true,
+            "description": "Width of the field"
+          },
+          "heigh": {
+            "type": "number",
+            "nullable": true,
+            "description": "Height of the field (note: column name has typo)"
+          },
+          "page_number": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Page number where the field is located (1-indexed)"
+          },
+          "tl_position": {
+            "type": "number",
+            "nullable": true,
+            "description": "Top-left corner position"
+          },
+          "tr_position": {
+            "type": "number",
+            "nullable": true,
+            "description": "Top-right corner position"
+          },
+          "bl_position": {
+            "type": "number",
+            "nullable": true,
+            "description": "Bottom-left corner position"
+          },
+          "br_position": {
+            "type": "number",
+            "nullable": true,
+            "description": "Bottom-right corner position"
+          },
+          "variable_name": {
             "type": "string",
             "nullable": true,
-            "description": "Value entered or selected for this field"
+            "description": "Variable name for prefilled data mapping"
           },
-          "required": {
-            "type": "boolean",
-            "description": "Whether the field is required"
+          "final_value": {
+            "type": "string",
+            "nullable": true,
+            "description": "Final signed value of the field"
           },
-          "completed": {
-            "type": "boolean",
-            "description": "Whether the field has been completed"
+          "date_default": {
+            "type": "string",
+            "nullable": true,
+            "description": "Default date value"
+          },
+          "date_signing_default": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "nullable": true,
+            "description": "Whether to use signing date as default (0 = no, 1 = yes)"
+          },
+          "format_rules": {
+            "type": "object",
+            "nullable": true,
+            "description": "Formatting rules (e.g., date format)"
+          },
+          "validation_rules": {
+            "type": "object",
+            "nullable": true,
+            "description": "Validation rules for the field"
+          },
+          "dropdown_options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "description": "Options for dropdown fields"
+          },
+          "multi_group_id": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Group ID for radio button groups"
+          },
+          "read_only": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "Whether the field is read-only (0 = no, 1 = yes)"
+          },
+          "read_only_value": {
+            "type": "string",
+            "nullable": true,
+            "description": "Static value for read-only fields"
+          },
+          "calculated_font_size": {
+            "type": "number",
+            "nullable": true,
+            "description": "Calculated font size for the field"
+          },
+          "deleted": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "Soft delete flag (0 = active, 1 = deleted)"
           }
         }
       },
@@ -1468,7 +1578,7 @@
             "required": [
               "template_id"
             ],
-            "description": "Create signing request from a template",
+            "description": "Create signing request from a template. Supports partial updates for both recipients and fields.",
             "properties": {
               "template_id": {
                 "type": "string",
@@ -1496,6 +1606,13 @@
                 },
                 "description": "Optional recipient overrides. Use template_user_id (preferred) or order (fallback) to match template users. Only user info (first_name, last_name, email, phone_number, address fields, title, company) can be updated - order and designation are always inherited from template. Recipients not provided will use template defaults."
               },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Field"
+                },
+                "description": "Optional field overrides for partial updates. Use template_field_id (preferred) or variable_name (fallback) to match template fields. Only provided properties override template defaults. Supported override properties: type, required, position, read_only, read_only_value, format_rules, validation_rules, dropdown_options, date_default, date_signing_default, multi_group_id. Fields not matched are ignored. If fields array is omitted, all template fields are used as-is."
+              },
               "settings": {
                 "$ref": "#/components/schemas/SigningRequestSettings",
                 "description": "Override template settings"
@@ -1503,13 +1620,24 @@
             },
             "example": {
               "template_id": "21424147-11c0-43d5-ac5f-a1f7001b5607",
-              "name": "Presupuesto XXXX",
+              "name": "Contract for Client X",
               "recipients": [
                 {
                   "template_user_id": "template-user-uuid-1",
                   "first_name": "Toni",
                   "last_name": "Campins",
                   "email": "acampins@cocodin.com"
+                }
+              ],
+              "fields": [
+                {
+                  "template_field_id": "field-uuid-1",
+                  "read_only": true,
+                  "read_only_value": "Contract #12345"
+                },
+                {
+                  "variable_name": "company_name",
+                  "read_only_value": "Acme Corporation"
                 }
               ]
             }
@@ -4093,31 +4221,64 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TemplateField"
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TemplateField"
+                      }
+                    }
                   }
                 },
-                "example": [
-                  {
-                    "id": "field123-e89b-12d3-a456-426614174000",
-                    "field_name": "Signature",
-                    "field_type": "signature",
-                    "required": true,
-                    "position_x": 100,
-                    "position_y": 200,
-                    "page_number": 1
-                  },
-                  {
-                    "id": "field456-e89b-12d3-a456-426614174000",
-                    "field_name": "Date",
-                    "field_type": "date",
-                    "required": true,
-                    "position_x": 100,
-                    "position_y": 250,
-                    "page_number": 1
-                  }
-                ]
+                "example": {
+                  "results": [
+                    {
+                      "id": "field123-e89b-12d3-a456-426614174000",
+                      "type": "signature",
+                      "required": true,
+                      "recipient_id": "user123-uuid",
+                      "variable_name": null,
+                      "position": {
+                        "x": 100,
+                        "y": 200,
+                        "width": 200,
+                        "height": 50
+                      },
+                      "page_number": 1,
+                      "dropdown_options": null,
+                      "multi_group_id": null,
+                      "date_signing_default": false,
+                      "format_rules": null,
+                      "validation_rules": null,
+                      "read_only": false,
+                      "read_only_value": null
+                    },
+                    {
+                      "id": "field456-e89b-12d3-a456-426614174000",
+                      "type": "date",
+                      "required": true,
+                      "recipient_id": "user123-uuid",
+                      "variable_name": null,
+                      "position": {
+                        "x": 100,
+                        "y": 250,
+                        "width": 150,
+                        "height": 30
+                      },
+                      "page_number": 1,
+                      "dropdown_options": null,
+                      "multi_group_id": null,
+                      "date_signing_default": true,
+                      "format_rules": {
+                        "date_format": "MM/DD/YYYY"
+                      },
+                      "validation_rules": null,
+                      "read_only": false,
+                      "read_only_value": null
+                    }
+                  ]
+                }
               }
             }
           },
@@ -4833,7 +4994,7 @@
         },
         "responses": {
           "200": {
-            "description": "Signing request updated successfully. Returns summary of changes made.",
+            "description": "Signing request updated successfully. Returns the updated signing request and summary of changes made.",
             "headers": {
               "X-RateLimit-Limit": {
                 "schema": {
@@ -4857,38 +5018,61 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "description": "Signing request ID (for backward compatibility)"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Signing request name (for backward compatibility)"
+                    },
                     "signing_request": {
                       "$ref": "#/components/schemas/SigningRequest"
                     },
-                    "changes": {
+                    "summary": {
                       "type": "object",
+                      "description": "Summary of all changes made in this update",
                       "properties": {
                         "properties_updated": {
-                          "type": "boolean"
+                          "type": "boolean",
+                          "description": "Whether any properties were updated"
                         },
                         "recipients_created": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Number of new recipients created"
                         },
                         "recipients_updated": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Number of existing recipients updated"
                         },
                         "recipients_deleted": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Number of recipients soft-deleted"
                         },
                         "fields_created": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Number of new fields created"
                         },
                         "fields_updated": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Number of existing fields updated"
                         },
                         "fields_reassigned": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Number of fields reassigned to another recipient"
+                        },
+                        "fields_deleted": {
+                          "type": "integer",
+                          "description": "Number of fields soft-deleted"
                         },
                         "reminders_created": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Number of new reminders created"
                         },
                         "reminders_updated": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Number of existing reminders updated"
                         }
                       }
                     }
@@ -5117,29 +5301,51 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SigningRequestField"
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SigningRequestField"
+                      }
+                    }
                   }
                 },
-                "example": [
-                  {
-                    "id": "field789-e89b-12d3-a456-426614174000",
-                    "field_name": "Signature",
-                    "field_type": "signature",
-                    "field_value": "data:image/png;base64,iVBOR...",
-                    "required": true,
-                    "completed": true
-                  },
-                  {
-                    "id": "field012-e89b-12d3-a456-426614174000",
-                    "field_name": "Full Name",
-                    "field_type": "text",
-                    "field_value": "Alice Johnson",
-                    "required": true,
-                    "completed": true
-                  }
-                ]
+                "example": {
+                  "results": [
+                    {
+                      "id": "field789-e89b-12d3-a456-426614174000",
+                      "companies_workspaces_signing_requests_id": "sr123-e89b-12d3-a456-426614174000",
+                      "companies_workspaces_signing_requests_users_id": "user456-e89b-12d3-a456-426614174000",
+                      "field_type": "signature",
+                      "required": 1,
+                      "x_postion": 100.5,
+                      "y_position": 200.75,
+                      "width": 200,
+                      "heigh": 50,
+                      "page_number": 1,
+                      "final_value": "data:image/png;base64,iVBOR...",
+                      "read_only": 0,
+                      "deleted": 0
+                    },
+                    {
+                      "id": "field012-e89b-12d3-a456-426614174000",
+                      "companies_workspaces_signing_requests_id": "sr123-e89b-12d3-a456-426614174000",
+                      "companies_workspaces_signing_requests_users_id": "user456-e89b-12d3-a456-426614174000",
+                      "field_type": "text",
+                      "required": 1,
+                      "x_postion": 150,
+                      "y_position": 300,
+                      "width": 250,
+                      "heigh": 30,
+                      "page_number": 1,
+                      "variable_name": "full_name",
+                      "final_value": "Alice Johnson",
+                      "read_only": 0,
+                      "deleted": 0
+                    }
+                  ]
+                }
               }
             }
           },
