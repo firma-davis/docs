@@ -361,10 +361,45 @@
           "type": "object",
           "properties": {
             "id": { "type": "string", "format": "uuid", "description": "Unique identifier for the template user" },
-            "name": { "type": "string", "description": "Recipient name" },
+            "name": { "type": "string", "description": "Recipient name (combined first and last name)" },
             "email": { "type": "string", "format": "email", "description": "Recipient email address" },
+            "first_name": { "type": "string", "nullable": true, "description": "Recipient first name" },
+            "last_name": { "type": "string", "nullable": true, "description": "Recipient last name" },
             "designation": { "type": "string", "enum": ["Signer", "CC", "Viewer"], "description": "Role of the recipient" },
-            "order": { "type": "integer", "minimum": 1, "description": "Order in which the recipient should sign" }
+            "order": { "type": "integer", "minimum": 1, "description": "Order in which the recipient should sign" },
+            "phone_number": { "type": "string", "nullable": true, "description": "Recipient phone number" },
+            "street_address": { "type": "string", "nullable": true, "description": "Recipient street address" },
+            "city": { "type": "string", "nullable": true, "description": "Recipient city" },
+            "state_province": { "type": "string", "nullable": true, "description": "Recipient state or province" },
+            "postal_code": { "type": "string", "nullable": true, "description": "Recipient postal code" },
+            "country": { "type": "string", "nullable": true, "description": "Recipient country" },
+            "title": { "type": "string", "nullable": true, "description": "Recipient job title" },
+            "company": { "type": "string", "nullable": true, "description": "Recipient company name" },
+            "required_fields": { 
+              "type": "array", 
+              "items": { "type": "string" }, 
+              "description": "List of recipient data fields required for sending (based on template fields with variable_name mappings). Always includes 'email' and 'first_name'." 
+            },
+            "missing_fields": { 
+              "type": "array", 
+              "items": { "type": "string" }, 
+              "description": "List of required fields that are currently empty for this recipient" 
+            },
+            "required_read_only_fields": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "variable_name": { "type": "string", "nullable": true, "description": "Variable name of the read-only field" },
+                  "field_type": { "type": "string", "description": "Type of the field (text, date, etc.)" }
+                }
+              },
+              "description": "List of required read-only fields that need pre-filled values before sending"
+            },
+            "ready_to_send": { 
+              "type": "boolean", 
+              "description": "Whether this recipient has all required data filled in for sending" 
+            }
           }
         },
         "DateFormatRules": {
@@ -578,12 +613,50 @@
           "type": "object",
           "properties": {
             "id": { "type": "string", "format": "uuid", "description": "Unique identifier for the signing request user" },
-            "name": { "type": "string", "description": "Recipient name" },
+            "name": { "type": "string", "description": "Recipient name (combined first and last name)" },
             "email": { "type": "string", "format": "email", "description": "Recipient email address" },
+            "first_name": { "type": "string", "nullable": true, "description": "Recipient first name" },
+            "last_name": { "type": "string", "nullable": true, "description": "Recipient last name" },
             "designation": { "type": "string", "enum": ["Signer", "CC", "Viewer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Signing order" },
-            "finished_date": { "type": "string", "format": "date-time", "nullable": true, "description": "Timestamp when this recipient completed all actions" },
-            "signature_details": { "type": "object", "nullable": true, "description": "Signature details if applicable" }
+            "finished_on": { "type": "string", "format": "date-time", "nullable": true, "description": "Timestamp when this recipient completed all actions" },
+            "declined_on": { "type": "string", "format": "date-time", "nullable": true, "description": "Timestamp when this recipient declined to sign" },
+            "decline_reason": { "type": "string", "nullable": true, "description": "Reason provided by recipient for declining" },
+            "phone_number": { "type": "string", "nullable": true, "description": "Recipient phone number" },
+            "street_address": { "type": "string", "nullable": true, "description": "Recipient street address" },
+            "city": { "type": "string", "nullable": true, "description": "Recipient city" },
+            "state_province": { "type": "string", "nullable": true, "description": "Recipient state or province" },
+            "postal_code": { "type": "string", "nullable": true, "description": "Recipient postal code" },
+            "country": { "type": "string", "nullable": true, "description": "Recipient country" },
+            "title": { "type": "string", "nullable": true, "description": "Recipient job title" },
+            "company": { "type": "string", "nullable": true, "description": "Recipient company name" },
+            "custom_fields": { "type": "object", "nullable": true, "description": "Custom field values for this recipient" },
+            "required_fields": { 
+              "type": "array", 
+              "items": { "type": "string" }, 
+              "description": "List of recipient data fields required for sending (based on fields with variable_name mappings). Always includes 'email' and 'first_name'." 
+            },
+            "missing_fields": { 
+              "type": "array", 
+              "items": { "type": "string" }, 
+              "description": "List of required fields that are currently empty for this recipient" 
+            },
+            "required_read_only_fields": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "variable_name": { "type": "string", "nullable": true, "description": "Variable name of the read-only field" },
+                  "field_type": { "type": "string", "description": "Type of the field (text, date, etc.)" },
+                  "has_value": { "type": "boolean", "description": "Whether this read-only field has a value set" }
+                }
+              },
+              "description": "List of required read-only fields that need pre-filled values before sending"
+            },
+            "ready_to_send": { 
+              "type": "boolean", 
+              "description": "Whether this recipient has all required data filled in for sending" 
+            }
           }
         },
         "SigningRequestField": {
@@ -1916,13 +1989,62 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "type": "array",
-                    "items": { "$ref": "#/components/schemas/TemplateUser" }
+                    "type": "object",
+                    "properties": {
+                      "results": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/TemplateUser" }
+                      }
+                    }
                   },
-                  "example": [
-                    { "id": "abc12345-e89b-12d3-a456-426614174000", "name": "John Doe", "email": "john@example.com", "designation": "Signer", "order": 1 },
-                    { "id": "def67890-e89b-12d3-a456-426614174000", "name": "Jane Smith", "email": "jane@example.com", "designation": "CC", "order": 2 }
-                  ]
+                  "example": {
+                    "results": [
+                      { 
+                        "id": "abc12345-e89b-12d3-a456-426614174000", 
+                        "name": "John Doe", 
+                        "email": "john@example.com", 
+                        "first_name": "John",
+                        "last_name": "Doe",
+                        "designation": "Signer", 
+                        "order": 1,
+                        "phone_number": null,
+                        "street_address": null,
+                        "city": null,
+                        "state_province": null,
+                        "postal_code": null,
+                        "country": null,
+                        "title": null,
+                        "company": null,
+                        "required_fields": ["email", "first_name"],
+                        "missing_fields": [],
+                        "required_read_only_fields": [],
+                        "ready_to_send": true
+                      },
+                      { 
+                        "id": "def67890-e89b-12d3-a456-426614174000", 
+                        "name": null, 
+                        "email": null, 
+                        "first_name": null,
+                        "last_name": null,
+                        "designation": "Signer", 
+                        "order": 2,
+                        "phone_number": null,
+                        "street_address": null,
+                        "city": null,
+                        "state_province": null,
+                        "postal_code": null,
+                        "country": null,
+                        "title": null,
+                        "company": null,
+                        "required_fields": ["email", "first_name", "phone_number"],
+                        "missing_fields": ["email", "first_name", "phone_number"],
+                        "required_read_only_fields": [
+                          { "variable_name": "contract_date", "field_type": "date" }
+                        ],
+                        "ready_to_send": false
+                      }
+                    ]
+                  }
                 }
               }
             },
@@ -2937,13 +3059,70 @@
               "content": {
                 "application/json": {
                   "schema": {
-                    "type": "array",
-                    "items": { "$ref": "#/components/schemas/SigningRequestUser" }
+                    "type": "object",
+                    "properties": {
+                      "results": {
+                        "type": "array",
+                        "items": { "$ref": "#/components/schemas/SigningRequestUser" }
+                      }
+                    }
                   },
-                  "example": [
-                    { "id": "user123-e89b-12d3-a456-426614174000", "name": "Alice Johnson", "email": "alice@example.com", "designation": "Signer", "order": 1, "finished_date": "2024-03-15T14:30:00Z", "signature_details": null },
-                    { "id": "user456-e89b-12d3-a456-426614174000", "name": "Bob Williams", "email": "bob@example.com", "designation": "Signer", "order": 2, "finished_date": null, "signature_details": null }
-                  ]
+                  "example": {
+                    "results": [
+                      { 
+                        "id": "user123-e89b-12d3-a456-426614174000", 
+                        "name": "Alice Johnson", 
+                        "email": "alice@example.com", 
+                        "first_name": "Alice",
+                        "last_name": "Johnson",
+                        "designation": "Signer", 
+                        "order": 1, 
+                        "finished_on": "2024-03-15T14:30:00Z",
+                        "declined_on": null,
+                        "decline_reason": null,
+                        "phone_number": "+1-555-0101",
+                        "street_address": null,
+                        "city": null,
+                        "state_province": null,
+                        "postal_code": null,
+                        "country": null,
+                        "title": "CEO",
+                        "company": "Acme Corp",
+                        "custom_fields": null,
+                        "required_fields": ["email", "first_name"],
+                        "missing_fields": [],
+                        "required_read_only_fields": [],
+                        "ready_to_send": true
+                      },
+                      { 
+                        "id": "user456-e89b-12d3-a456-426614174000", 
+                        "name": "Bob Williams", 
+                        "email": "bob@example.com", 
+                        "first_name": "Bob",
+                        "last_name": "Williams",
+                        "designation": "Signer", 
+                        "order": 2, 
+                        "finished_on": null,
+                        "declined_on": null,
+                        "decline_reason": null,
+                        "phone_number": null,
+                        "street_address": null,
+                        "city": null,
+                        "state_province": null,
+                        "postal_code": null,
+                        "country": null,
+                        "title": null,
+                        "company": null,
+                        "custom_fields": null,
+                        "required_fields": ["email", "first_name", "phone_number"],
+                        "missing_fields": ["phone_number"],
+                        "required_read_only_fields": [
+                          { "variable_name": "contract_amount", "field_type": "number", "has_value": false }
+                        ],
+                        "ready_to_send": false
+                      }
+                    ]
+                  }
                 }
               }
             },
