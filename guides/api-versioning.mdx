@@ -1,12 +1,12 @@
 ---
 title: "API Versioning"
-description: "Learn how the Firma Partner API handles versioning, deprecation, and breaking changes"
+description: "Learn how the Firma API handles versioning, deprecation, and breaking changes"
 icon: "code-branch"
 ---
 
 # API Versioning Guide
 
-The Firma Partner API uses header-based versioning via the `X-API-Version` header. This approach allows clients to specify which API version they want to use, with automatic deprecation warnings and a structured sunset process.
+The Firma API uses header-based versioning via the `X-API-Version` header. This allows you to specify which API version you want to use, with automatic deprecation warnings and a structured sunset process.
 
 ## How to Specify a Version
 
@@ -79,7 +79,6 @@ X-API-Version: 1
 Deprecation: 2025-06-01
 Sunset: 2025-12-01
 X-Deprecated-Message: This API version is deprecated and will be removed on 2025-12-01. Please migrate to version 2.
-Link: <https://docs.firma.dev/api/migration-v1-to-v2>; rel="deprecation"
 ```
 
 | Header | Description |
@@ -87,48 +86,38 @@ Link: <https://docs.firma.dev/api/migration-v1-to-v2>; rel="deprecation"
 | `Deprecation` | RFC 8594 compliant - Date when the version was deprecated |
 | `Sunset` | RFC 8594 compliant - Date when the version will be removed |
 | `X-Deprecated-Message` | Human-readable warning message |
-| `Link` | URL to migration documentation (when available) |
 
 ## Error Responses
 
 ### Invalid Version Header
 
-<ResponseExample>
-
-```json 400 Bad Request
+```json
+// 400 Bad Request
 {
   "error": "Invalid X-API-Version header. Must be a positive integer.",
   "code": "INVALID_VERSION"
 }
 ```
 
-</ResponseExample>
-
 ### Unsupported Version
 
-<ResponseExample>
-
-```json 400 Bad Request
+```json
+// 400 Bad Request
 {
   "error": "API version 99 is not supported. Supported versions: 1",
   "code": "UNSUPPORTED_VERSION"
 }
 ```
 
-</ResponseExample>
-
 ### Sunset Version (Removed)
 
-<ResponseExample>
-
-```json 410 Gone
+```json
+// 410 Gone
 {
   "error": "API version 1 has been removed as of 2025-12-01. Please migrate to version 2.",
   "code": "VERSION_SUNSET"
 }
 ```
-
-</ResponseExample>
 
 ## Breaking Changes Policy
 
@@ -139,7 +128,7 @@ Breaking changes are only introduced in major version increments (e.g., v1 → v
 When a new major version is released:
 
 1. **The previous version is marked as deprecated**
-2. **Clients receive warning headers** for a recommended 6-month deprecation period
+2. **You'll receive warning headers** for a recommended 6-month deprecation period
 3. **After the sunset date**, the old version returns `410 Gone`
 
 ### What Constitutes a Breaking Change?
@@ -157,7 +146,7 @@ Non-breaking changes include:
 - Adding new enum values (if your client handles unknown values gracefully)
 - Improving error messages
 
-## Best Practices for API Consumers
+## Best Practices
 
 <AccordionGroup>
 
@@ -190,7 +179,7 @@ headers: { }
 </Accordion>
 
 <Accordion title="Subscribe to changelog updates">
-Stay informed about upcoming changes by subscribing to our changelog or API announcements. This gives you advance notice of:
+Stay informed about upcoming changes by subscribing to the changelog or API announcements. This gives you advance notice of:
 - New version releases
 - Deprecation schedules
 - Breaking changes
@@ -224,7 +213,7 @@ When new versions are released or deprecation schedules are announced, this guid
 </Card>
 
 <Card title="Complete Setup Guide" icon="book" href="/guides/complete-setup-guide">
-  Get started with the Firma Partner API
+  Get started with the Firma API
 </Card>
 
 <Card title="Webhooks" icon="webhook" href="/guides/webhooks">

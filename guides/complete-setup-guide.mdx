@@ -164,14 +164,14 @@ POST /v1/signing-requests
 
 ### Using the embeddable signing request editor
 
-If you would rather let users configure who the document goes to and how it is sent using a UI instead of building the JSON payload yourself, you can embed the signing request editor in your product.
+If you would rather provide a UI to configure who the document goes to and how it is sent, instead of building the JSON payload yourself, you can embed the signing request editor in your product.
 
 A typical flow looks like this:
 
 - Your backend creates a signing request in the correct workspace (often in a draft state) from a template.
 - Your backend generates a short-lived JWT token for that signing request using Firma's JWT endpoint.
 - Your frontend loads the **embeddable signing request editor** in an iframe or dedicated view and passes it the JWT.
-- The user fills in signer details (names, emails, roles) and any allowed options such as expiration or message.
+- Signer details (names, emails, roles) and options such as expiration or message are filled in via the UI.
 - When they click **Send**, Firma updates or sends the signing request, and you can react using webhooks or `postMessage` events.
 
 This works well for:
@@ -189,7 +189,7 @@ After creating a signing request, Firma will generate secure signing URLs for ea
 
 ### Option 1: Embedded Signing
 
-Embed the signing flow within your app for a seamless user experience. This is ideal if you're building a white-labeled or fully-integrated product.
+Embed the signing flow within your app for a seamless experience. This is ideal if you're building a white-labeled or fully-integrated product.
 
 📘 [Embedded Signing Guide](/guides/embeddable-signing)
 

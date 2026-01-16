@@ -6,7 +6,7 @@ icon: "key"
 
 # API Authentication & JWT Tokens
 
-The Firma Partner API uses two authentication methods: API key authentication for server-to-server requests, and JWT tokens for embedding the template and signing request editors in your application.
+The Firma API uses two authentication methods: API key authentication for server-to-server requests, and JWT tokens for embedding the template and signing request editors in your application.
 
 ## API Key Authentication
 
@@ -452,7 +452,7 @@ result = response.json()
   2. ✅ **Use environment variables** - Store API keys securely, never hardcode them
   3. ✅ **Validate token expiration** - Check `expires_at` and refresh tokens as needed
   4. ✅ **Use HTTPS only** - Never transmit tokens over unencrypted connections
-  5. ✅ **Revoke unused tokens** - Revoke JWTs when users finish editing or log out
+  5. ✅ **Revoke unused tokens** - Revoke JWTs when editing is complete or the session ends
   6. ✅ **Implement token refresh** - Request new tokens before expiration for ongoing sessions
   7. ✅ **Scope tokens appropriately** - Each JWT is tied to a specific template or signing request
 </Warning>

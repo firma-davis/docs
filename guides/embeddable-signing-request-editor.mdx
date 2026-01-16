@@ -9,8 +9,8 @@ Embed Firma's signing request editor inside your application using JWT authentic
 
 ## Use cases
 
-- **White-label signing workflows**: Let users manage signing requests under your brand
-- **Multi-tenant applications**: Secure per-user signing request access without exposing API keys
+- **White-label signing workflows**: Manage signing requests under your brand
+- **Multi-tenant applications**: Secure per-signer access without exposing API keys
 - **Embedded document workflows**: Seamless signing request management within your product
 - **Time-limited access**: Tokens expire automatically for security (7-day expiration)
 
@@ -276,7 +276,7 @@ JWT tokens are generated with a 7-day expiration time for typical editing workfl
 
 JWT tokens expire automatically after 7 days based on the `expires_at` timestamp. After expiration:
 - The embedded editor will reject the token
-- Users must request a new token to continue
+- A new token must be requested to continue
 - No API call needed — tokens expire passively
 
 ### Token refresh (optional)
@@ -328,7 +328,7 @@ If you exceed the rate limit (429 response):
 ### ❌ Don'ts
 
 - ❌ Don't expose API keys in frontend code
-- ❌ Don't reuse tokens across users
+- ❌ Don't reuse tokens across sessions or signers
 - ❌ Don't log JWT tokens (security risk)
 - ❌ Don't share tokens between different signing requests
 
