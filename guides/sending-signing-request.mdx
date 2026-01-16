@@ -4,8 +4,6 @@ description: "How to create and send signing requests to recipients."
 icon: "paper-plane"
 ---
 
-import { API_VERSION } from "/snippets/api-version.mdx";
-
 # Sending a signing request
 
 This guide covers creating a signing request, attaching a template or document, and inviting recipients to sign.
@@ -224,7 +222,7 @@ Before a signing request is sent, you can update its details using the API. The 
 
 ### Comprehensive update (PUT)
 
-Use <a href={`../api-reference/${API_VERSION}/signing-requests/comprehensive-update-signing-request`}>`comprehensive-update-signing-request`</a> for complex updates involving multiple sections.
+Use [`comprehensive-update-signing-request`](../api-reference/v01.02.00/signing-requests/comprehensive-update-signing-request) for complex updates involving multiple sections.
 
 **When to use**:
 
@@ -297,7 +295,7 @@ const updatedRequest = await response.json();
 
 ### Partial update (PATCH)
 
-Use <a href={`../api-reference/${API_VERSION}/signing-requests/partially-update-signing-request`}>`partially-update-signing-request`</a> when updating specific properties or a single recipient.
+Use [`partially-update-signing-request`](../api-reference/v01.02.00/signing-requests/partially-update-signing-request) when updating specific properties or a single recipient.
 
 **When to use**:
 
@@ -459,7 +457,7 @@ document.getElementById('signing-root').appendChild(iframe)
 ## Next steps
 
 - [Set up webhooks](webhooks) to receive real-time event notifications (60 req/min)
-- <a href={`../api-reference/${API_VERSION}/signing-requests/get-signing-request-reminders`}>Add automated reminders</a> for pending recipients
+- [Add automated reminders](../api-reference/v01.02.00/signing-requests/get-signing-request-reminders) for pending recipients
 - [Embed the template editor](embeddable-template-editor) with JWT authentication (120 req/min)
 - [Configure workspace settings](workspace-settings) for custom email templates (100-200 req/min)
 - [Embeddable template editor](embeddable-template-editor) with JWT authentication for secure embedded workflows
