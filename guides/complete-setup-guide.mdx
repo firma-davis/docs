@@ -51,11 +51,11 @@ To begin integrating Firma, you'll first need to create an account and access yo
 
 ### Making API Calls
 
-You'll pass your API key via the `X-API-Key` header in all requests:
+You'll pass your API key via the `Authorization` header in all requests:
 
 ```bash
 curl https://api.firma.dev/v1/... \
-  -H "X-API-Key: your_api_key_here"
+  -H "Authorization: your_api_key_here"
 ```
 
 ---
@@ -219,7 +219,7 @@ To see how many credits you have left at any time, call the **Get Company Inform
 ```bash
 GET /v1/company
 Headers:
-  X-API-Key: your_company_api_key
+  Authorization: your_company_api_key
 ```
 
 The response includes a `credits` field, along with other information about your company. For example:
