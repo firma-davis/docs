@@ -23,7 +23,6 @@
                   "guides/authentication",
                   "guides/api-versioning",
                   "guides/creating-workspaces",
-                  "guides/workspace-settings",
                   "guides/white-labeling",
                   "guides/sending-signing-request",
                   {
