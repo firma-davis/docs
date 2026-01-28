@@ -36,7 +36,8 @@
                     ]
                   },
                   "guides/rate-limits",
-                  "guides/webhooks"
+                  "guides/webhooks",
+                  "guides/api-changelog"
                 ]
               }
             ]
@@ -202,7 +203,8 @@
                     ]
                   },
                   "guides/rate-limits",
-                  "guides/webhooks"
+                  "guides/webhooks",
+                  "guides/api-changelog"
                 ]
               }
             ]
@@ -347,7 +349,8 @@
                     ]
                   },
                   "guides/rate-limits",
-                  "guides/webhooks"
+                  "guides/webhooks",
+                  "guides/api-changelog"
                 ]
               }
             ]
@@ -492,7 +495,8 @@
                     ]
                   },
                   "guides/rate-limits",
-                  "guides/webhooks"
+                  "guides/webhooks",
+                  "guides/api-changelog"
                 ]
               }
             ]
@@ -635,7 +639,8 @@
                     ]
                   },
                   "guides/rate-limits",
-                  "guides/webhooks"
+                  "guides/webhooks",
+                  "guides/api-changelog"
                 ]
               }
             ]
