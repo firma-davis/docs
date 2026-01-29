@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Firma MCP",
+  "name": "Firma API",
   "navigation": {
     "pages": [
       "guides/complete-setup-guide",
@@ -38,6 +38,12 @@
           "guides/rate-limits",
           "guides/api-changelog"
         ]
+      },
+      {
+        "group": "API reference",
+        "tag": "Latest",
+        "openapi": "api-reference/v01.03.00/openapi.json",
+        "pages": []
       }
     ]
   }
