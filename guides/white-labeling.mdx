@@ -63,12 +63,12 @@ curl -X POST https://api.firma.dev/functions/v1/signing-request-api/company/doma
 
 Add the verification TXT record to your DNS:
 
-| Type | Name | Value |
-|------|------|-------|
-| TXT | `_firma-verification.acme.com` | `firma-verify=abc123xyz` |
+| Type | Name                           | Value                    |
+| ---- | ------------------------------ | ------------------------ |
+| TXT  | `_firma-verification.acme.com` | `firma-verify=abc123xyz` |
 
 <Note>
-DNS propagation typically takes a few minutes but can take up to 48 hours.
+  DNS propagation typically takes a few minutes but can take up to 48 hours.
 </Note>
 
 #### Step 3: Verify domain ownership
@@ -128,11 +128,11 @@ curl -X POST https://api.firma.dev/functions/v1/signing-request-api/company/doma
 
 Add all three DNS records to your domain:
 
-| Type | Name | Value |
-|------|------|-------|
-| TXT | `@` | `v=spf1 include:amazonses.com ~all` |
-| CNAME | `resend._domainkey` | `resend._domainkey.amazonses.com` |
-| TXT | `_dmarc` | `v=DMARC1; p=none;` |
+| Type  | Name                | Value                               |
+| ----- | ------------------- | ----------------------------------- |
+| TXT   | `@`                 | `v=spf1 include:amazonses.com ~all` |
+| CNAME | `resend._domainkey` | `resend._domainkey.amazonses.com`   |
+| TXT   | `_dmarc`            | `v=DMARC1; p=none;`                 |
 
 #### Step 6: Verify DNS records
 
@@ -179,16 +179,16 @@ For multi-tenant SaaS applications, you can configure different email domains pe
 
 The workflow is identical to company domains, but uses workspace-scoped endpoints:
 
-| Action | Endpoint |
-|--------|----------|
-| List domains | `GET /workspaces/{workspace_id}/domains` |
-| Add domain | `POST /workspaces/{workspace_id}/domains` |
-| Get domain | `GET /workspaces/{workspace_id}/domains/{id}` |
-| Delete domain | `DELETE /workspaces/{workspace_id}/domains/{id}` |
+| Action           | Endpoint                                                        |
+| ---------------- | --------------------------------------------------------------- |
+| List domains     | `GET /workspaces/{workspace_id}/domains`                        |
+| Add domain       | `POST /workspaces/{workspace_id}/domains`                       |
+| Get domain       | `GET /workspaces/{workspace_id}/domains/{id}`                   |
+| Delete domain    | `DELETE /workspaces/{workspace_id}/domains/{id}`                |
 | Verify ownership | `POST /workspaces/{workspace_id}/domains/{id}/verify-ownership` |
-| Finalize setup | `POST /workspaces/{workspace_id}/domains/{id}/finalize` |
-| Verify DNS | `POST /workspaces/{workspace_id}/domains/{id}/verify-dns` |
-| Set primary | `POST /workspaces/{workspace_id}/domains/{id}/set-primary` |
+| Finalize setup   | `POST /workspaces/{workspace_id}/domains/{id}/finalize`         |
+| Verify DNS       | `POST /workspaces/{workspace_id}/domains/{id}/verify-dns`       |
+| Set primary      | `POST /workspaces/{workspace_id}/domains/{id}/set-primary`      |
 
 **Example: Add workspace domain**
 
@@ -218,12 +218,12 @@ For complete control over customer communications, you can disable Firma's autom
 
 Each signing request has settings that control which emails are sent:
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `send_signing_email` | Send signing request notification emails to signers | `true` |
-| `send_finish_email` | Send completion email when all signers finish | `true` |
-| `send_expiration_email` | Send expiration notification when request expires | `true` |
-| `send_cancellation_email` | Send cancellation notification when request is cancelled | `true` |
+| Setting                   | Description                                              | Default |
+| ------------------------- | -------------------------------------------------------- | ------- |
+| `send_signing_email`      | Send signing request notification emails to signers      | `true`  |
+| `send_finish_email`       | Send completion email when all signers finish            | `true`  |
+| `send_expiration_email`   | Send expiration notification when request expires        | `true`  |
+| `send_cancellation_email` | Send cancellation notification when request is cancelled | `true`  |
 
 ### Create signing request with emails disabled
 
