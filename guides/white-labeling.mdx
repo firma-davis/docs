@@ -4,8 +4,6 @@ icon: "palette"
 description: "Configure custom email domains, disable Firma emails, and create a fully branded signing experience for your customers."
 ---
 
-# White Labeling
-
 Firma provides comprehensive white-labeling capabilities that let you create a fully branded e-signature experience. From custom email domains to embedded interfaces, you can ensure your customers interact with your brand throughout the entire signing process.
 
 ## Overview
@@ -31,7 +29,7 @@ Set up a custom email domain for your entire Firma account. All workspaces will 
 Use the API to add a custom email domain:
 
 ```bash
-curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/company/domains \
+curl -X POST https://api.firma.dev/functions/v1/signing-request-api/company/domains \
   -H "Authorization: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -78,7 +76,7 @@ DNS propagation typically takes a few minutes but can take up to 48 hours.
 Once the TXT record is added, verify ownership:
 
 ```bash
-curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/company/domains/{domain_id}/verify-ownership \
+curl -X POST https://api.firma.dev/functions/v1/signing-request-api/company/domains/{domain_id}/verify-ownership \
   -H "Authorization: YOUR_API_KEY"
 ```
 
@@ -102,7 +100,7 @@ curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/co
 After ownership is verified, finalize the domain to receive email-sending DNS records:
 
 ```bash
-curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/company/domains/{domain_id}/finalize \
+curl -X POST https://api.firma.dev/functions/v1/signing-request-api/company/domains/{domain_id}/finalize \
   -H "Authorization: YOUR_API_KEY"
 ```
 
@@ -141,7 +139,7 @@ Add all three DNS records to your domain:
 Once DNS records are added, verify them:
 
 ```bash
-curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/company/domains/{domain_id}/verify-dns \
+curl -X POST https://api.firma.dev/functions/v1/signing-request-api/company/domains/{domain_id}/verify-dns \
   -H "Authorization: YOUR_API_KEY"
 ```
 
@@ -171,7 +169,7 @@ curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/co
 If you have multiple domains, set one as the default:
 
 ```bash
-curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/company/domains/{domain_id}/set-primary \
+curl -X POST https://api.firma.dev/functions/v1/signing-request-api/company/domains/{domain_id}/set-primary \
   -H "Authorization: YOUR_API_KEY"
 ```
 
@@ -195,7 +193,7 @@ The workflow is identical to company domains, but uses workspace-scoped endpoint
 **Example: Add workspace domain**
 
 ```bash
-curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/workspaces/{workspace_id}/domains \
+curl -X POST https://api.firma.dev/functions/v1/signing-request-api/workspaces/{workspace_id}/domains \
   -H "Authorization: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -230,7 +228,7 @@ Each signing request has settings that control which emails are sent:
 ### Create signing request with emails disabled
 
 ```bash
-curl -X POST https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/signing-requests \
+curl -X POST https://api.firma.dev/functions/v1/signing-request-api/signing-requests \
   -H "Authorization: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -261,7 +259,7 @@ When emails are disabled, retrieve the signing URLs from the API and send them t
 ```js
 // Create signing request with emails disabled
 const response = await fetch(
-  'https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/signing-requests',
+  'https://api.firma.dev/functions/v1/signing-request-api/signing-requests',
   {
     method: 'POST',
     headers: {
@@ -285,7 +283,7 @@ const signingRequest = await response.json()
 
 // Get signing URLs for each recipient
 const usersResponse = await fetch(
-  `https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/signing-requests/${signingRequest.id}/users`,
+  `https://api.firma.dev/functions/v1/signing-request-api/signing-requests/${signingRequest.id}/users`,
   {
     headers: { 'Authorization': API_KEY }
   }
@@ -369,7 +367,7 @@ Here's a complete example of setting up a fully white-labeled workspace for a cu
 ### 1. Create the workspace
 
 ```js
-const workspace = await fetch('https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/workspaces', {
+const workspace = await fetch('https://api.firma.dev/functions/v1/signing-request-api/workspaces', {
   method: 'POST',
   headers: {
     'Authorization': API_KEY,
@@ -388,7 +386,7 @@ console.log('Created workspace:', workspace.id)
 ```js
 // Step 1: Add domain
 const domainResponse = await fetch(
-  `https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/workspaces/${workspace.id}/domains`,
+  `https://api.firma.dev/functions/v1/signing-request-api/workspaces/${workspace.id}/domains`,
   {
     method: 'POST',
     headers: {
@@ -404,13 +402,13 @@ const domainId = domainResponse.domain.id
 // Step 2: User adds TXT record to DNS...
 // Step 3: Verify ownership
 await fetch(
-  `https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/workspaces/${workspace.id}/domains/${domainId}/verify-ownership`,
+  `https://api.firma.dev/functions/v1/signing-request-api/workspaces/${workspace.id}/domains/${domainId}/verify-ownership`,
   { method: 'POST', headers: { 'Authorization': API_KEY } }
 )
 
 // Step 4: Finalize (returns SPF, DKIM, DMARC records)
 const finalizeResponse = await fetch(
-  `https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/workspaces/${workspace.id}/domains/${domainId}/finalize`,
+  `https://api.firma.dev/functions/v1/signing-request-api/workspaces/${workspace.id}/domains/${domainId}/finalize`,
   { method: 'POST', headers: { 'Authorization': API_KEY } }
 ).then(r => r.json())
 
@@ -419,13 +417,13 @@ console.log('Add these DNS records:', finalizeResponse.dns_records)
 // Step 5: User adds DNS records...
 // Step 6: Verify DNS
 await fetch(
-  `https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/workspaces/${workspace.id}/domains/${domainId}/verify-dns`,
+  `https://api.firma.dev/functions/v1/signing-request-api/workspaces/${workspace.id}/domains/${domainId}/verify-dns`,
   { method: 'POST', headers: { 'Authorization': API_KEY } }
 )
 
 // Step 7: Set as primary
 await fetch(
-  `https://api.firma.dev/functions/v1/signing-request-api/v01.03.00/workspaces/${workspace.id}/domains/${domainId}/set-primary`,
+  `https://api.firma.dev/functions/v1/signing-request-api/workspaces/${workspace.id}/domains/${domainId}/set-primary`,
   { method: 'POST', headers: { 'Authorization': API_KEY } }
 )
 ```

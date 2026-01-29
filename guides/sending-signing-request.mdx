@@ -4,7 +4,6 @@ description: "How to create and send signing requests to recipients."
 icon: "paper-plane"
 ---
 
-# Sending a signing request
 
 This guide covers creating a signing request, attaching a template or document, and inviting recipients to sign.
 
@@ -350,7 +349,7 @@ const updatedRequest = await response.json();
 import requests
 import os
 
-# Update only properties (name and expiration)
+## Update only properties (name and expiration)
 response = requests.patch(
     f"https://api.firma.dev/functions/v1/signing-request-api/signing-requests/{signing_request_id}",
     headers={

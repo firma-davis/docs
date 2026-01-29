@@ -4,7 +4,6 @@ icon: "webhook"
 description: "Implement secure webhook integrations to receive real-time event notifications from Firma."
 ---
 
-# Webhooks
 
 Firma sends webhook events to notify your application about signing lifecycle changes, document completions, and workspace activities. Webhooks enable real-time integrations without polling.
 
@@ -282,7 +281,7 @@ async function processWebhookEvent(event) {
 Monitor your webhook's health by checking the webhook details:
 
 ```bash
-# Get webhook details
+## Get webhook details
 curl "https://api.firma.dev/functions/v1/signing-request-api/webhooks/{id}" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
