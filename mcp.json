@@ -42,7 +42,7 @@
       {
         "group": "API reference",
         "tag": "Latest",
-        "openapi": "api-reference/v01.03.00/openapi.json",
+        "openapi": "api-reference/v01.03.00/openapi-v01.03.00.json",
         "pages": []
       }
     ]
