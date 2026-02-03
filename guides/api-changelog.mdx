@@ -10,6 +10,7 @@ This document provides a detailed changelog of all Firma API versions, documenti
 
 | Version | Release Type | Key Changes |
 |---------|--------------|-------------|
+| [v01.04.00](#v010400) | Minor Release | New Field Types, PATCH Field Operations, Template User Matching |
 | [v01.03.00](#v010300) | Minor Release | Email Domains API, Credit Cost, Declined Status |
 | [v01.02.00](#v010200) | Minor Release | Enhanced User Fields, Ready-to-Send Indicators |
 | [v01.01.00](#v010100) | Minor Release | Template CRUD, API Key Management, Comprehensive Updates |
@@ -18,9 +19,121 @@ This document provides a detailed changelog of all Firma API versions, documenti
 
 ---
 
+## v01.04.00
+
+**Release Date:** January 31, 2026
+
+### New Features
+
+#### New Field Types
+Three new field types have been added:
+
+| Field Type | Description |
+|------------|-------------|
+| `textarea` | Multi-line text input field |
+| `url` | Clickable link field (automatically read-only) |
+| `radio_buttons` | Radio button group (renamed from `radio`) |
+
+**URL Field Details:**
+- Automatically set to `read_only: true`
+- Use `read_only_value` to set the target URL
+- Use `format_rules.urlDisplayText` to customize the display text
+
+Example:
+```json
+{
+  "field": {
+    "type": "url",
+    "position": { "x": 100, "y": 200, "width": 150, "height": 30 },
+    "page_number": 1,
+    "read_only_value": "https://example.com/terms",
+    "format_rules": { "urlDisplayText": "View Terms & Conditions" }
+  }
+}
+```
+
+#### PATCH Field Operations
+
+Both Template and Signing Request PATCH endpoints now support single-field operations:
+
+**Template PATCH** (`PATCH /templates/{id}`):
+- Can now update properties, a single user, **OR a single field**
+- Include `field` object in request body
+- Include `field.id` to update existing field, omit to create new
+
+**Signing Request PATCH** (`PATCH /signing-requests/{id}`):
+- Can now update properties, a single recipient, **OR a single field**
+- Same field object structure as templates
+
+Example - Create new field:
+```json
+{
+  "field": {
+    "type": "text",
+    "x": 100,
+    "y": 200,
+    "width": 200,
+    "height": 30,
+    "page": 1,
+    "required": true,
+    "assigned_to_user_id": "user-uuid"
+  }
+}
+```
+
+Example - Update existing field:
+```json
+{
+  "field": {
+    "id": "field-uuid",
+    "x": 120,
+    "y": 220
+  }
+}
+```
+
+#### Template User Matching for Recipients
+
+When creating signing requests from templates, you can now use `template_user_id` to explicitly match recipients to template users:
+
+```json
+{
+  "template_id": "template-uuid",
+  "recipients": [
+    {
+      "template_user_id": "template-user-uuid",
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "email": "jane@example.com"
+    }
+  ]
+}
+```
+
+- `template_user_id` is the preferred method for matching
+- `order` remains available as a fallback
+
+### Schema Changes
+
+#### Field Type Enum
+Updated from:
+```
+["text", "signature", "date", "checkbox", "initials", "dropdown", "radio"]
+```
+
+To:
+```
+["text", "signature", "date", "checkbox", "initials", "dropdown", "radio_buttons", "textarea", "url"]
+```
+
+#### Recipient Schema
+- Signing request creation now uses shared `Recipient` schema reference
+- Added `template_user_id` property for explicit template user matching
+
+---
+
 ## v01.03.00
 
-**API Version:** 1.1.0
 
 ### New Features
 
@@ -44,7 +157,6 @@ A complete new API category for configuring custom email domains for sending sig
 #### Credit Cost Tracking
 - Added `credit_cost` field to `Template` schema - Number of credits consumed when sending
 - Added `credit_cost` field to `SigningRequest` schema - Credits consumed when sent
-- Added `show_credit_cost_in_editor` to `WorkspaceSettings` - Toggle credit display in editors
 
 #### Signing Request Declined Status
 - Added `declined` to `SigningRequest.status` enum values
@@ -64,7 +176,6 @@ A complete new API category for configuring custom email domains for sending sig
 
 ## v01.02.00
 
-**API Version:** 1.1.0
 
 ### Enhanced User Information
 
@@ -121,7 +232,6 @@ Template users endpoint (`GET /templates/{id}/users`) now returns:
 
 ## v01.01.00
 
-**API Version:** 1.1.0 (upgraded from 1.0.0)
 
 ### New Endpoints
 
@@ -189,7 +299,6 @@ Example request:
 
 ## v01.00.02
 
-**API Version:** 1.0.0
 
 ### New Features
 
@@ -249,7 +358,6 @@ Enhanced with clearer descriptions and additional properties:
 
 ## v01.00.01
 
-**API Version:** 1.0.0
 
 ### Initial Release
 
@@ -262,7 +370,6 @@ The initial release of the Firma Partner API with the following core features:
 - **Signing Requests** - Document signing request operations
 - **Webhooks** - Webhook configuration and management
 - **JWT Management** - JWT token generation and revocation
-- **Workspace Settings** - Workspace configuration
 - **Legacy** - Deprecated endpoints for backward compatibility
 
 #### Authentication
@@ -350,3 +457,10 @@ Tiered rate limits based on operation type:
 - Email domain configuration available for custom sending domains
 - `declined` status added to signing request status enum
 - Credit cost tracking available on templates and signing requests
+
+### Migrating from v01.03.00 to v01.04.00
+- No breaking changes
+- `radio` field type renamed to `radio_buttons` (both still accepted)
+- New field types available: `textarea`, `url`
+- PATCH endpoints now support single-field operations
+- Use `template_user_id` for explicit template user matching in signing requests
