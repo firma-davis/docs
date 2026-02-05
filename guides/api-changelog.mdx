@@ -10,12 +10,52 @@ This document provides a detailed changelog of all Firma API versions, documenti
 
 | Version | Release Type | Key Changes |
 |---------|--------------|-------------|
+| [v01.05.00](#v010500) | Patch Release | Email Validation Warnings |
 | [v01.04.00](#v010400) | Minor Release | New Field Types, PATCH Field Operations, Template User Matching |
 | [v01.03.00](#v010300) | Minor Release | Email Domains API, Credit Cost, Declined Status |
 | [v01.02.00](#v010200) | Minor Release | Enhanced User Fields, Ready-to-Send Indicators |
 | [v01.01.00](#v010100) | Minor Release | Template CRUD, API Key Management, Comprehensive Updates |
 | [v01.00.02](#v010002) | Patch Release | Custom Fields API |
 | [v01.00.01](#v010001) | Initial Release | Core API Features |
+
+---
+
+## v01.05.00
+
+**Release Date:** February 5, 2026
+
+### New Features
+
+#### Email Validation Warnings
+
+Signing request endpoints now return non-blocking warnings when recipient email addresses have potentially invalid formats (e.g., unusual TLDs, missing dots). These warnings help identify potential delivery issues without failing the request.
+
+**Affected Endpoints:**
+
+| Endpoint | Response Field |
+|----------|----------------|
+| `POST /signing-requests` (create) | `warnings` array |
+| `PATCH /signing-requests/{id}` (partial update) | `warning` field |
+| `PUT /signing-requests/{id}` (comprehensive update) | `warnings` array |
+
+**Example Response:**
+```json
+{
+  "signing_request": { ... },
+  "warnings": [
+    "Recipient email 'user@compny' may have an invalid format"
+  ]
+}
+```
+
+**Notes:**
+- Warnings are non-blocking — the request still succeeds
+- Useful for flagging potential typos or invalid email domains
+- Check the `warnings` or `warning` field in the response to surface these to users
+
+### Migration Guide
+
+No breaking changes. Email validation warnings are purely additive and do not affect existing integrations.
 
 ---
 

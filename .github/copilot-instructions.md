@@ -59,7 +59,9 @@ The documentation supports multiple API versions:
 
 | Version | Folder | Notes |
 |---------|--------|-------|
-| v1.3.0 (latest) | `api-reference/v01.03.00/` | Email Domains API added |
+| v1.5.0 (latest) | `api-reference/v01.05.00/` | Email validation warnings |
+| v1.4.0 | `api-reference/v01.04.00/` | New field types, PATCH field operations |
+| v1.3.0 | `api-reference/v01.03.00/` | Email Domains API added |
 | v1.2.0 | `api-reference/v01.02.00/` | Enhanced user fields |
 | v1.1.0 | `api-reference/v01.01.00/` | Template CRUD, API key management |
 | v1.0.2 | `api-reference/v01.00.02/` | Custom Fields API added |
@@ -90,11 +92,24 @@ The documentation supports multiple API versions:
 Additional signing request endpoints:
 - create-and-send-signing-request-atomic
 
-### v1.3.0 Only
+### v1.3.0+
 
 | Group | Endpoints |
 |-------|-----------|
 | **Email Domains** | list-company-domains, add-company-domain, get-company-domain, delete-company-domain, verify-domain-ownership, finalize-domain-setup, verify-dns-records, set-primary-domain, list-workspace-domains, add-workspace-domain, get-workspace-domain, delete-workspace-domain, verify-workspace-domain-ownership, finalize-workspace-domain-setup, verify-workspace-domain-dns-records, set-primary-workspace-domain |
+
+### v1.4.0+
+
+New field types added:
+- `textarea` - Multi-line text input
+- `url` - Clickable URL fields (auto read-only)
+- `radio_buttons` - Radio button selection (renamed from `radio`)
+
+PATCH endpoints now support creating/updating individual fields.
+
+### v1.5.0+
+
+Signing request responses may include `warnings` or `warning` fields for email format validation (non-blocking).
 
 ## Frontmatter Requirements
 
