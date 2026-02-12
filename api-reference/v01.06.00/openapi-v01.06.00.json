@@ -3,7 +3,7 @@
     "info": {
       "title": "Firma Partner API",
       "description": "RESTful API for document signing and template management.\n\n**Authentication**: All endpoints require API key authentication via the `Authorization` header. Use your API key directly without any prefix (e.g., `your-api-key`). The Bearer prefix is optional but not required.\n\n**Security Features**:\n- Input validation using Zod schemas with detailed field-level error messages\n- RSA-256 signed JWT tokens for embedded template access\n\n**Rate Limiting**: Rate limits are tiered based on operation type:\n- Read operations (GET): 200 requests per minute\n- Write operations (POST/PUT/PATCH/DELETE): 120 requests per minute\n- Webhook CRUD operations: 60 requests per minute\n- Webhook test: 10 requests per minute\n- API key regeneration/expiration: 1 request per minute\n- Webhook secret rotation: 1 request per minute\n\nWhen rate limits are exceeded, the API returns a `429 Too Many Requests` response with headers:\n- `X-RateLimit-Limit`: Maximum requests per minute for this endpoint\n- `X-RateLimit-Remaining`: Requests remaining in current window\n- `X-RateLimit-Reset`: Unix timestamp when limit resets\n- `Retry-After`: Seconds until retry is allowed\n\n**Error Handling**: All errors return structured JSON responses with `error` (human-readable message), `code` (machine-readable identifier), and `details` (field-level validation errors when applicable).\n\n**Embedded Template Integration**: The Firma Template Editor can be embedded in your application using a standalone JavaScript library.\n\n```html\n<!-- Load the Firma Template Editor library -->\n<script src=\"https://api.firma.dev/functions/v1/embed-proxy/template-editor.js\"></script>\n\n<script>\n// Generate JWT token via API first\nfetch('https://api.firma.dev/functions/v1/signing-request-api/generate-template-token', {\n  method: 'POST',\n  headers: {\n    'Authorization': 'YOUR_API_KEY',\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    companies_workspaces_templates_id: 'template-id'\n  })\n})\n.then(res => res.json())\n.then(data => {\n  // Initialize editor with JWT token\n  window.FirmaTemplateEditor.init({\n    container: '#firma-editor-container',\n    jwt: data.token,\n    templateId: 'template-id',\n    theme: 'dark',\n    readOnly: false,\n    onSave: (savedData) => {\n      console.log('Template saved:', savedData);\n    },\n    onError: (error) => {\n      console.error('Editor error:', error);\n    },\n    onLoad: (template) => {\n      console.log('Template loaded:', template);\n    }\n  });\n});\n```",
-      "version": "1.1.0",
+      "version": "01.06.00",
       "contact": {
         "name": "API Support",
         "url": "https://firma.com/support"
@@ -294,13 +294,13 @@
                     "fields": [
                       {
                         "id": "existing-field-uuid",
-                        "position": { "x": 50, "y": 700, "width": 150, "height": 50 }
+                        "position": { "x": 10, "y": 70, "width": 30, "height": 10 }
                       },
                       {
                         "recipient_id": "temp_new_signer",
                         "type": "signature",
                         "page_number": 1,
-                        "position": { "x": 50, "y": 600, "width": 150, "height": 50 },
+                        "position": { "x": 10, "y": 55, "width": 30, "height": 10 },
                         "required": true
                       }
                     ],
@@ -430,18 +430,18 @@
           "description": "A field placed on a template document",
           "properties": {
             "id": { "type": "string", "format": "uuid", "description": "Unique identifier for the field" },
-            "type": { "type": "string", "enum": ["text", "signature", "date", "checkbox", "dropdown", "radio_buttons", "number", "text_area", "file", "initials"], "description": "Type of the field" },
+            "type": { "type": "string", "enum": ["text", "signature", "date", "checkbox", "dropdown", "radio_buttons", "number", "text_area", "file", "initial"], "description": "Type of the field" },
             "required": { "type": "boolean", "description": "Whether the field is required" },
             "recipient_id": { "type": "string", "format": "uuid", "nullable": true, "description": "ID of assigned recipient" },
             "variable_name": { "type": "string", "nullable": true, "description": "Variable name for field (used in templates)" },
             "position": {
               "type": "object",
-              "description": "Position and dimensions of the field on the document",
+              "description": "Position and dimensions of the field on the document. All values are percentages (0-100). The field must fit within the page: x + width <= 100 and y + height <= 100.",
               "properties": {
-                "x": { "type": "number", "description": "X coordinate of field position" },
-                "y": { "type": "number", "description": "Y coordinate of field position" },
-                "width": { "type": "number", "description": "Width of the field" },
-                "height": { "type": "number", "description": "Height of the field" }
+                "x": { "type": "number", "minimum": 0, "maximum": 100, "description": "X coordinate of field position (percentage, 0-100)" },
+                "y": { "type": "number", "minimum": 0, "maximum": 100, "description": "Y coordinate of field position (percentage, 0-100)" },
+                "width": { "type": "number", "minimum": 0, "maximum": 100, "description": "Width of the field (percentage, 0-100). Note: x + width must be <= 100" },
+                "height": { "type": "number", "minimum": 0, "maximum": 100, "description": "Height of the field (percentage, 0-100). Note: y + height must be <= 100" }
               }
             },
             "page_number": { "type": "integer", "minimum": 1, "nullable": true, "description": "Page number where the field is located (1-indexed). Must not exceed the document's total page count." },
@@ -509,6 +509,30 @@
               "nullable": true,
               "enum": ["file_not_accessible", null],
               "description": "Error indicator if the final document exists but could not be accessed. Value is 'file_not_accessible' when the file path exists but the file is missing or inaccessible, otherwise null."
+            },
+            "document_only_download_url": {
+              "type": "string",
+              "format": "uri",
+              "nullable": true,
+              "description": "Signed URL to download the document-only PDF (signed document without certificate/audit trail pages). Only available when the split PDF feature has been applied. URL expires after 1 hour."
+            },
+            "document_only_download_error": {
+              "type": "string",
+              "nullable": true,
+              "enum": ["file_not_accessible", null],
+              "description": "Error indicator if the document-only file exists but could not be accessed."
+            },
+            "certificate_only_download_url": {
+              "type": "string",
+              "format": "uri",
+              "nullable": true,
+              "description": "Signed URL to download the certificate-only PDF (audit trail/certificate pages only). Only available when the split PDF feature has been applied. URL expires after 1 hour."
+            },
+            "certificate_only_download_error": {
+              "type": "string",
+              "nullable": true,
+              "enum": ["file_not_accessible", null],
+              "description": "Error indicator if the certificate-only file exists but could not be accessed."
             }
           }
         },
@@ -555,15 +579,16 @@
           "properties": {
             "id": { "type": "string", "format": "uuid", "description": "Unique identifier (include for updates, omit for new fields)" },
             "template_field_id": { "type": "string", "format": "uuid", "description": "Template field ID to match for partial updates (template-based creation only). Use this to identify which template field to override. Takes precedence over variable_name for matching." },
-            "type": { "type": "string", "enum": ["signature", "text", "date", "checkbox", "dropdown", "initials", "image"], "description": "Type of field" },
+            "type": { "type": "string", "enum": ["signature", "text", "date", "checkbox", "dropdown", "initial", "initials", "text_area", "textarea", "image"], "description": "Type of field. Accepts 'initial' or 'initials' (normalized to 'initial'), 'textarea' or 'text_area' (normalized to 'text_area')." },
             "position": {
               "type": "object",
               "required": ["x", "y", "width", "height"],
+              "description": "Field must fit within page bounds: x + width <= 100 and y + height <= 100",
               "properties": {
                 "x": { "type": "number", "minimum": 0, "maximum": 100, "description": "X coordinate as percentage (0-100)" },
                 "y": { "type": "number", "minimum": 0, "maximum": 100, "description": "Y coordinate as percentage (0-100)" },
-                "width": { "type": "number", "minimum": 0, "maximum": 100, "description": "Width as percentage (0-100)" },
-                "height": { "type": "number", "minimum": 0, "maximum": 100, "description": "Height as percentage (0-100)" }
+                "width": { "type": "number", "minimum": 0, "maximum": 100, "description": "Width as percentage (0-100). x + width must be <= 100" },
+                "height": { "type": "number", "minimum": 0, "maximum": 100, "description": "Height as percentage (0-100). y + height must be <= 100" }
               }
             },
             "page_number": { "type": "integer", "minimum": 1, "description": "Page number where field is located (1-indexed). Must not exceed the document's total page count." },
@@ -671,7 +696,7 @@
             "id": { "type": "string", "format": "uuid", "description": "Unique identifier for the field" },
             "companies_workspaces_signing_requests_id": { "type": "string", "format": "uuid", "description": "ID of the signing request this field belongs to" },
             "companies_workspaces_signing_requests_users_id": { "type": "string", "format": "uuid", "nullable": true, "description": "ID of the recipient assigned to this field" },
-            "field_type": { "type": "string", "enum": ["text", "signature", "date", "checkbox", "initials", "dropdown", "radio_buttons", "textarea", "url"], "description": "Type of the field. url fields are read-only and display a clickable link." },
+            "field_type": { "type": "string", "enum": ["text", "signature", "date", "checkbox", "initial", "dropdown", "radio_buttons", "text_area", "url"], "description": "Type of the field. url fields are read-only and display a clickable link." },
             "required": { "type": "integer", "enum": [0, 1], "description": "Whether the field is required (0 = no, 1 = yes)" },
             "x_postion": { "type": "number", "nullable": true, "description": "X position of the field on the document (note: column name has typo)" },
             "y_position": { "type": "number", "nullable": true, "description": "Y position of the field on the document" },
@@ -2268,7 +2293,7 @@
                           "type": "object",
                           "properties": {
                             "id": { "type": "string", "format": "uuid", "description": "Include to update existing field, omit to create new" },
-                            "type": { "type": "string", "enum": ["text", "signature", "date", "checkbox", "initials", "dropdown", "radio_buttons", "textarea", "url"], "description": "Field type. Required for new fields. url fields are automatically read-only." },
+                            "type": { "type": "string", "enum": ["text", "signature", "date", "checkbox", "initial", "initials", "dropdown", "radio_buttons", "textarea", "text_area", "url"], "description": "Field type. Accepts 'initial' or 'initials', 'textarea' or 'text_area'. Required for new fields. url fields are automatically read-only." },
                             "x": { "type": "number", "description": "X position on document. Required for new fields." },
                             "y": { "type": "number", "description": "Y position on document. Required for new fields." },
                             "width": { "type": "number", "description": "Field width. Required for new fields." },
@@ -2831,7 +2856,7 @@
           },
           "responses": {
             "201": {
-              "description": "Signing request created successfully",
+              "description": "Signing request created successfully. Response may include a 'warnings' array for email format validation warnings (non-blocking).",
               "headers": {
                 "X-RateLimit-Limit": { "schema": { "type": "integer" }, "description": "Rate limit: 120 requests per minute" },
                 "X-RateLimit-Remaining": { "schema": { "type": "integer" } },
@@ -2914,7 +2939,7 @@
                           },
                           "type": {
                             "type": "string",
-                            "enum": ["signature", "initials", "text", "date", "checkbox"],
+                            "enum": ["signature", "initial", "text", "date", "checkbox"],
                             "description": "Field type",
                             "example": "signature"
                           },
@@ -3375,7 +3400,7 @@
                           "type": "object",
                           "properties": {
                             "id": { "type": "string", "format": "uuid", "description": "Include to update existing field, omit to create new" },
-                            "type": { "type": "string", "enum": ["text", "signature", "date", "checkbox", "initials", "dropdown", "radio_buttons", "textarea", "url"], "description": "Field type. Required for new fields. url fields are automatically read-only." },
+                            "type": { "type": "string", "enum": ["text", "signature", "date", "checkbox", "initial", "initials", "dropdown", "radio_buttons", "textarea", "text_area", "url"], "description": "Field type. Accepts 'initial' or 'initials', 'textarea' or 'text_area'. Required for new fields. url fields are automatically read-only." },
                             "position": {
                               "type": "object",
                               "properties": {
@@ -3465,7 +3490,7 @@
           },
           "responses": {
             "200": {
-              "description": "Signing request updated successfully",
+              "description": "Signing request updated successfully. Response may include a 'warning' field for email format validation warnings (non-blocking).",
               "headers": {
                 "X-RateLimit-Limit": { "schema": { "type": "integer" }, "description": "Rate limit: 120 requests per minute" },
                 "X-RateLimit-Remaining": { "schema": { "type": "integer" } },
@@ -3544,7 +3569,8 @@
                           "fields_reassigned": { "type": "integer", "description": "Number of fields reassigned to another recipient" },
                           "fields_deleted": { "type": "integer", "description": "Number of fields soft-deleted" },
                           "reminders_created": { "type": "integer", "description": "Number of new reminders created" },
-                          "reminders_updated": { "type": "integer", "description": "Number of existing reminders updated" }
+                          "reminders_updated": { "type": "integer", "description": "Number of existing reminders updated" },
+                          "warnings": { "type": "array", "items": { "type": "string" }, "description": "Email format warnings for recipients (non-blocking)" }
                         }
                       }
                     }

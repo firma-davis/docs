@@ -208,7 +208,7 @@
                     "first_name": "Jane",
                     "last_name": "Doe",
                     "email": "jane@example.com",
-                    "designation": "CC",
+                    "designation": "Signer",
                     "order": 2
                   }
                 }
@@ -306,7 +306,7 @@
                       "first_name": "Jane",
                       "last_name": "Doe",
                       "email": "jane@example.com",
-                      "designation": "CC",
+                      "designation": "Signer",
                       "order": 2
                     }
                   ],
@@ -551,9 +551,7 @@
           "designation": {
             "type": "string",
             "enum": [
-              "Signer",
-              "CC",
-              "Viewer"
+              "Signer"
             ],
             "description": "Role of the recipient"
           },
@@ -972,9 +970,7 @@
           "designation": {
             "type": "string",
             "enum": [
-              "Signer",
-              "CC",
-              "Approver"
+              "Signer"
             ],
             "description": "Role of the recipient"
           },
@@ -1278,9 +1274,7 @@
           "designation": {
             "type": "string",
             "enum": [
-              "Signer",
-              "CC",
-              "Viewer"
+              "Signer"
             ],
             "description": "Role of the recipient"
           },
@@ -3344,10 +3338,8 @@
                           "designation": {
                             "type": "string",
                             "enum": [
-                              "Signer",
-                              "CC",
-                              "Approver"
-                            ]
+              "Signer"
+            ]
                           },
                           "order": {
                             "type": "integer",
@@ -3541,10 +3533,8 @@
                         "designation": {
                           "type": "string",
                           "enum": [
-                            "Signer",
-                            "CC",
-                            "Approver"
-                          ]
+              "Signer"
+            ]
                         },
                         "order": {
                           "type": "integer",
@@ -3926,7 +3916,7 @@
                     "id": "def67890-e89b-12d3-a456-426614174000",
                     "name": "Jane Smith",
                     "email": "jane@example.com",
-                    "designation": "CC",
+                    "designation": "Signer",
                     "order": 2
                   }
                 ]
@@ -4634,7 +4624,7 @@
                       "first_name": "Jane",
                       "last_name": "Doe",
                       "email": "jane@example.com",
-                      "designation": "CC",
+                      "designation": "Signer",
                       "order": 2
                     }
                   }

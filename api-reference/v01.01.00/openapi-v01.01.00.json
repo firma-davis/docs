@@ -155,7 +155,7 @@
                       "first_name": "Jane",
                       "last_name": "Doe",
                       "email": "jane@example.com",
-                      "designation": "CC",
+                      "designation": "Signer",
                       "order": 2
                     }
                   }
@@ -238,7 +238,7 @@
                         "first_name": "Jane",
                         "last_name": "Doe",
                         "email": "jane@example.com",
-                        "designation": "CC",
+                        "designation": "Signer",
                         "order": 2
                       }
                     ],
@@ -363,7 +363,7 @@
             "id": { "type": "string", "format": "uuid", "description": "Unique identifier for the template user" },
             "name": { "type": "string", "description": "Recipient name" },
             "email": { "type": "string", "format": "email", "description": "Recipient email address" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Viewer"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Order in which the recipient should sign" }
           }
         },
@@ -495,7 +495,7 @@
             "first_name": { "type": "string", "maxLength": 100, "description": "Recipient's first name" },
             "last_name": { "type": "string", "maxLength": 100, "description": "Recipient's last name (optional, but required if using full_name or last_name prefilled variables)" },
             "email": { "type": "string", "format": "email", "maxLength": 255, "description": "Recipient's email address" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Signing sequence number. Recipients must sign in order, with lower numbers signing first. This field is required for all recipients." },
             "phone_number": { "type": "string", "maxLength": 50, "nullable": true, "description": "Recipient's phone number" },
             "street_address": { "type": "string", "maxLength": 255, "nullable": true, "description": "Street address" },
@@ -580,7 +580,7 @@
             "id": { "type": "string", "format": "uuid", "description": "Unique identifier for the signing request user" },
             "name": { "type": "string", "description": "Recipient name" },
             "email": { "type": "string", "format": "email", "description": "Recipient email address" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Viewer"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Signing order" },
             "finished_date": { "type": "string", "format": "date-time", "nullable": true, "description": "Timestamp when this recipient completed all actions" },
             "signature_details": { "type": "object", "nullable": true, "description": "Signature details if applicable" }
@@ -1666,7 +1666,7 @@
                             "first_name": { "type": "string", "maxLength": 255 },
                             "last_name": { "type": "string", "maxLength": 255, "description": "Optional, but required if using full_name or last_name prefilled variables" },
                             "email": { "type": "string", "format": "email" },
-                            "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"] },
+                            "designation": { "type": "string", "enum": ["Signer"] },
                             "order": { "type": "integer", "minimum": 1 },
                             "phone_number": { "type": "string" },
                             "street_address": { "type": "string" },
@@ -1760,7 +1760,7 @@
                           "first_name": { "type": "string" },
                           "last_name": { "type": "string", "description": "Optional, but required if using full_name or last_name prefilled variables" },
                           "email": { "type": "string", "format": "email" },
-                          "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"] },
+                          "designation": { "type": "string", "enum": ["Signer"] },
                           "order": { "type": "integer", "minimum": 1 },
                           "phone_number": { "type": "string" },
                           "street_address": { "type": "string" },
@@ -1921,7 +1921,7 @@
                   },
                   "example": [
                     { "id": "abc12345-e89b-12d3-a456-426614174000", "name": "John Doe", "email": "john@example.com", "designation": "Signer", "order": 1 },
-                    { "id": "def67890-e89b-12d3-a456-426614174000", "name": "Jane Smith", "email": "jane@example.com", "designation": "CC", "order": 2 }
+                    { "id": "def67890-e89b-12d3-a456-426614174000", "name": "Jane Smith", "email": "jane@example.com", "designation": "Signer", "order": 2 }
                   ]
                 }
               }
@@ -2235,7 +2235,7 @@
                           },
                           "designation": {
                             "type": "string",
-                            "enum": ["Signer", "CC", "Approver"],
+                            "enum": ["Signer"],
                             "default": "Signer",
                             "description": "Recipient role",
                             "example": "Signer"
@@ -2780,7 +2780,7 @@
                         "first_name": "Jane",
                         "last_name": "Doe",
                         "email": "jane@example.com",
-                        "designation": "CC",
+                        "designation": "Signer",
                         "order": 2
                       }
                     }

@@ -10,6 +10,7 @@ This document provides a detailed changelog of all Firma API versions, documenti
 
 | Version | Release Type | Key Changes |
 |---------|--------------|-------------|
+| [v01.06.00](#v010600) | Minor Release | Split PDF Downloads, Field Type Normalization |
 | [v01.05.00](#v010500) | Patch Release | Email Validation Warnings |
 | [v01.04.00](#v010400) | Minor Release | New Field Types, PATCH Field Operations, Template User Matching |
 | [v01.03.00](#v010300) | Minor Release | Email Domains API, Credit Cost, Declined Status |
@@ -17,6 +18,70 @@ This document provides a detailed changelog of all Firma API versions, documenti
 | [v01.01.00](#v010100) | Minor Release | Template CRUD, API Key Management, Comprehensive Updates |
 | [v01.00.02](#v010002) | Patch Release | Custom Fields API |
 | [v01.00.01](#v010001) | Initial Release | Core API Features |
+
+---
+
+## v01.06.00
+
+**Release Date:** February 12, 2026
+
+### New Features
+
+#### Split PDF Downloads
+
+Completed signing requests now support downloading the signed document and audit trail certificate as separate files, in addition to the existing combined download.
+
+**New fields on `SigningRequest` schema:**
+
+| Field | Description |
+|-------|-------------|
+| `document_only_download_url` | Signed URL to download just the signed document (without certificate/audit trail pages) |
+| `document_only_download_error` | Error indicator if the document-only file is inaccessible |
+| `certificate_only_download_url` | Signed URL to download just the certificate/audit trail pages |
+| `certificate_only_download_error` | Error indicator if the certificate-only file is inaccessible |
+
+**Notes:**
+- Only available when the split PDF feature has been applied to the signing request
+- URLs expire after 1 hour — fetch the signing request again for a fresh URL
+- Error fields return `"file_not_accessible"` if the file path exists but the file is missing
+
+**Example Response (partial):**
+```json
+{
+  "id": "sr-uuid",
+  "status": "finished",
+  "final_document_download_url": "https://storage.example.com/combined.pdf",
+  "document_only_download_url": "https://storage.example.com/document.pdf",
+  "document_only_download_error": null,
+  "certificate_only_download_url": "https://storage.example.com/certificate.pdf",
+  "certificate_only_download_error": null
+}
+```
+
+### Schema Changes
+
+#### Field Type Normalization
+
+Field type enums now accept both original and normalized forms across all schemas. The API normalizes inputs automatically:
+
+| Input | Normalized To |
+|-------|---------------|
+| `initials` | `initial` |
+| `textarea` | `text_area` |
+
+**Affected schemas:**
+
+| Schema | Change |
+|--------|--------|
+| `TemplateField.type` | `initials` → `initial`; enum now includes both `initial` and `initials` variants |
+| `Field.type` (signing requests) | Now accepts `initial`/`initials` and `textarea`/`text_area` |
+| `SigningRequestField.field_type` | `initials` → `initial`, `textarea` → `text_area` |
+| Template PATCH `field.type` | Now accepts both forms with normalization |
+| Signing Request PATCH `field.type` | Now accepts both forms with normalization |
+
+### Migration Guide
+
+No breaking changes. Both old and new field type names are accepted. The split PDF download fields are purely additive.
 
 ---
 
@@ -504,3 +569,12 @@ Tiered rate limits based on operation type:
 - New field types available: `textarea`, `url`
 - PATCH endpoints now support single-field operations
 - Use `template_user_id` for explicit template user matching in signing requests
+
+### Migrating from v01.04.00 to v01.05.00
+- No breaking changes
+- Email validation warnings are purely additive
+
+### Migrating from v01.05.00 to v01.06.00
+- No breaking changes
+- Split PDF download URLs available on completed signing requests
+- Field type inputs `initials`/`initial` and `textarea`/`text_area` both accepted with automatic normalization

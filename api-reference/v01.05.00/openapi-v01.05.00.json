@@ -156,7 +156,7 @@
                       "first_name": "Jane",
                       "last_name": "Doe",
                       "email": "jane@example.com",
-                      "designation": "CC",
+                      "designation": "Signer",
                       "order": 2
                     }
                   }
@@ -239,7 +239,7 @@
                         "first_name": "Jane",
                         "last_name": "Doe",
                         "email": "jane@example.com",
-                        "designation": "CC",
+                        "designation": "Signer",
                         "order": 2
                       }
                     ],
@@ -294,13 +294,13 @@
                     "fields": [
                       {
                         "id": "existing-field-uuid",
-                        "position": { "x": 50, "y": 700, "width": 150, "height": 50 }
+                        "position": { "x": 10, "y": 70, "width": 30, "height": 10 }
                       },
                       {
                         "recipient_id": "temp_new_signer",
                         "type": "signature",
                         "page_number": 1,
-                        "position": { "x": 50, "y": 600, "width": 150, "height": 50 },
+                        "position": { "x": 10, "y": 55, "width": 30, "height": 10 },
                         "required": true
                       }
                     ],
@@ -367,7 +367,7 @@
             "email": { "type": "string", "format": "email", "description": "Recipient email address" },
             "first_name": { "type": "string", "nullable": true, "description": "Recipient first name" },
             "last_name": { "type": "string", "nullable": true, "description": "Recipient last name" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Viewer"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Order in which the recipient should sign" },
             "phone_number": { "type": "string", "nullable": true, "description": "Recipient phone number" },
             "street_address": { "type": "string", "nullable": true, "description": "Recipient street address" },
@@ -436,12 +436,12 @@
             "variable_name": { "type": "string", "nullable": true, "description": "Variable name for field (used in templates)" },
             "position": {
               "type": "object",
-              "description": "Position and dimensions of the field on the document",
+              "description": "Position and dimensions of the field on the document. All values are percentages (0-100). The field must fit within the page: x + width <= 100 and y + height <= 100.",
               "properties": {
-                "x": { "type": "number", "description": "X coordinate of field position" },
-                "y": { "type": "number", "description": "Y coordinate of field position" },
-                "width": { "type": "number", "description": "Width of the field" },
-                "height": { "type": "number", "description": "Height of the field" }
+                "x": { "type": "number", "minimum": 0, "maximum": 100, "description": "X coordinate of field position (percentage, 0-100)" },
+                "y": { "type": "number", "minimum": 0, "maximum": 100, "description": "Y coordinate of field position (percentage, 0-100)" },
+                "width": { "type": "number", "minimum": 0, "maximum": 100, "description": "Width of the field (percentage, 0-100). Note: x + width must be <= 100" },
+                "height": { "type": "number", "minimum": 0, "maximum": 100, "description": "Height of the field (percentage, 0-100). Note: y + height must be <= 100" }
               }
             },
             "page_number": { "type": "integer", "minimum": 1, "nullable": true, "description": "Page number where the field is located (1-indexed). Must not exceed the document's total page count." },
@@ -535,7 +535,7 @@
             "first_name": { "type": "string", "maxLength": 100, "description": "Recipient's first name" },
             "last_name": { "type": "string", "maxLength": 100, "description": "Recipient's last name (optional, but required if using full_name or last_name prefilled variables)" },
             "email": { "type": "string", "format": "email", "maxLength": 255, "description": "Recipient's email address" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Signing sequence number. Recipients must sign in order, with lower numbers signing first. This field is required for all recipients." },
             "phone_number": { "type": "string", "maxLength": 50, "nullable": true, "description": "Recipient's phone number" },
             "street_address": { "type": "string", "maxLength": 255, "nullable": true, "description": "Street address" },
@@ -559,11 +559,12 @@
             "position": {
               "type": "object",
               "required": ["x", "y", "width", "height"],
+              "description": "Field must fit within page bounds: x + width <= 100 and y + height <= 100",
               "properties": {
                 "x": { "type": "number", "minimum": 0, "maximum": 100, "description": "X coordinate as percentage (0-100)" },
                 "y": { "type": "number", "minimum": 0, "maximum": 100, "description": "Y coordinate as percentage (0-100)" },
-                "width": { "type": "number", "minimum": 0, "maximum": 100, "description": "Width as percentage (0-100)" },
-                "height": { "type": "number", "minimum": 0, "maximum": 100, "description": "Height as percentage (0-100)" }
+                "width": { "type": "number", "minimum": 0, "maximum": 100, "description": "Width as percentage (0-100). x + width must be <= 100" },
+                "height": { "type": "number", "minimum": 0, "maximum": 100, "description": "Height as percentage (0-100). y + height must be <= 100" }
               }
             },
             "page_number": { "type": "integer", "minimum": 1, "description": "Page number where field is located (1-indexed). Must not exceed the document's total page count." },
@@ -622,7 +623,7 @@
             "email": { "type": "string", "format": "email", "description": "Recipient email address" },
             "first_name": { "type": "string", "nullable": true, "description": "Recipient first name" },
             "last_name": { "type": "string", "nullable": true, "description": "Recipient last name" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Viewer"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Signing order" },
             "finished_on": { "type": "string", "format": "date-time", "nullable": true, "description": "Timestamp when this recipient completed all actions" },
             "declined_on": { "type": "string", "format": "date-time", "nullable": true, "description": "Timestamp when this recipient declined to sign" },
@@ -2245,7 +2246,7 @@
                             "first_name": { "type": "string", "maxLength": 255 },
                             "last_name": { "type": "string", "maxLength": 255, "description": "Optional, but required if using full_name or last_name prefilled variables" },
                             "email": { "type": "string", "format": "email" },
-                            "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"] },
+                            "designation": { "type": "string", "enum": ["Signer"] },
                             "order": { "type": "integer", "minimum": 1 },
                             "phone_number": { "type": "string" },
                             "street_address": { "type": "string" },
@@ -2401,7 +2402,7 @@
                           "first_name": { "type": "string" },
                           "last_name": { "type": "string", "description": "Optional, but required if using full_name or last_name prefilled variables" },
                           "email": { "type": "string", "format": "email" },
-                          "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"] },
+                          "designation": { "type": "string", "enum": ["Signer"] },
                           "order": { "type": "integer", "minimum": 1 },
                           "phone_number": { "type": "string" },
                           "street_address": { "type": "string" },
@@ -3433,7 +3434,7 @@
                         "first_name": "Jane",
                         "last_name": "Doe",
                         "email": "jane@example.com",
-                        "designation": "CC",
+                        "designation": "Signer",
                         "order": 2
                       }
                     }

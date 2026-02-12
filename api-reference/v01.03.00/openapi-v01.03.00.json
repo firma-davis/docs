@@ -156,7 +156,7 @@
                       "first_name": "Jane",
                       "last_name": "Doe",
                       "email": "jane@example.com",
-                      "designation": "CC",
+                      "designation": "Signer",
                       "order": 2
                     }
                   }
@@ -239,7 +239,7 @@
                         "first_name": "Jane",
                         "last_name": "Doe",
                         "email": "jane@example.com",
-                        "designation": "CC",
+                        "designation": "Signer",
                         "order": 2
                       }
                     ],
@@ -367,7 +367,7 @@
             "email": { "type": "string", "format": "email", "description": "Recipient email address" },
             "first_name": { "type": "string", "nullable": true, "description": "Recipient first name" },
             "last_name": { "type": "string", "nullable": true, "description": "Recipient last name" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Viewer"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Order in which the recipient should sign" },
             "phone_number": { "type": "string", "nullable": true, "description": "Recipient phone number" },
             "street_address": { "type": "string", "nullable": true, "description": "Recipient street address" },
@@ -535,7 +535,7 @@
             "first_name": { "type": "string", "maxLength": 100, "description": "Recipient's first name" },
             "last_name": { "type": "string", "maxLength": 100, "description": "Recipient's last name (optional, but required if using full_name or last_name prefilled variables)" },
             "email": { "type": "string", "format": "email", "maxLength": 255, "description": "Recipient's email address" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Signing sequence number. Recipients must sign in order, with lower numbers signing first. This field is required for all recipients." },
             "phone_number": { "type": "string", "maxLength": 50, "nullable": true, "description": "Recipient's phone number" },
             "street_address": { "type": "string", "maxLength": 255, "nullable": true, "description": "Street address" },
@@ -622,7 +622,7 @@
             "email": { "type": "string", "format": "email", "description": "Recipient email address" },
             "first_name": { "type": "string", "nullable": true, "description": "Recipient first name" },
             "last_name": { "type": "string", "nullable": true, "description": "Recipient last name" },
-            "designation": { "type": "string", "enum": ["Signer", "CC", "Viewer"], "description": "Role of the recipient" },
+            "designation": { "type": "string", "enum": ["Signer"], "description": "Role of the recipient" },
             "order": { "type": "integer", "minimum": 1, "description": "Signing order" },
             "finished_on": { "type": "string", "format": "date-time", "nullable": true, "description": "Timestamp when this recipient completed all actions" },
             "declined_on": { "type": "string", "format": "date-time", "nullable": true, "description": "Timestamp when this recipient declined to sign" },
@@ -2245,7 +2245,7 @@
                             "first_name": { "type": "string", "maxLength": 255 },
                             "last_name": { "type": "string", "maxLength": 255, "description": "Optional, but required if using full_name or last_name prefilled variables" },
                             "email": { "type": "string", "format": "email" },
-                            "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"] },
+                            "designation": { "type": "string", "enum": ["Signer"] },
                             "order": { "type": "integer", "minimum": 1 },
                             "phone_number": { "type": "string" },
                             "street_address": { "type": "string" },
@@ -2339,7 +2339,7 @@
                           "first_name": { "type": "string" },
                           "last_name": { "type": "string", "description": "Optional, but required if using full_name or last_name prefilled variables" },
                           "email": { "type": "string", "format": "email" },
-                          "designation": { "type": "string", "enum": ["Signer", "CC", "Approver"] },
+                          "designation": { "type": "string", "enum": ["Signer"] },
                           "order": { "type": "integer", "minimum": 1 },
                           "phone_number": { "type": "string" },
                           "street_address": { "type": "string" },
@@ -2863,7 +2863,7 @@
                           },
                           "designation": {
                             "type": "string",
-                            "enum": ["Signer", "CC", "Approver"],
+                            "enum": ["Signer"],
                             "default": "Signer",
                             "description": "Recipient role",
                             "example": "Signer"
@@ -3408,7 +3408,7 @@
                         "first_name": "Jane",
                         "last_name": "Doe",
                         "email": "jane@example.com",
-                        "designation": "CC",
+                        "designation": "Signer",
                         "order": 2
                       }
                     }
